@@ -107,69 +107,75 @@ elif in_opt == 'opt_coord':
         long = round(long, 4)
 
     elif coord_opt == 'dms':
-        lat_deg = st.slider(
-            label = 'Degrees',
-            min_value = 0,
-            max_value = 90,
-            value = 0,
-            step = 1,
-            format = '%s°',
-            key = 'ss_lat_deg',
-            help = ""
-        )
-        lat_min = st.slider(
-            label = 'Minutes',
-            min_value = 0,
-            max_value = 59,
-            value = 0,
-            step = 1,
-            format = "%s'",
-            key = 'ss_lat_min',
-            help = ""
-        )
-        lat_sec = st.slider(
-            label = 'Seconds',
-            min_value = 0,
-            max_value = 59,
-            value = 0,
-            step = 1,
-            format = '%s"',
-            key = 'ss_lat_sec',
-            help = ""
-        )
+        with st.expander(
+            label = "Latitude",
+            expanded = True
+        ):
+            lat_deg = st.slider(
+                label = 'Degrees',
+                min_value = 0,
+                max_value = 90,
+                value = 0,
+                step = 1,
+                format = '%s°',
+                key = 'ss_lat_deg',
+                help = ""
+            )
+            lat_min = st.slider(
+                label = 'Minutes',
+                min_value = 0,
+                max_value = 59,
+                value = 0,
+                step = 1,
+                format = "%s'",
+                key = 'ss_lat_min',
+                help = ""
+            )
+            lat_sec = st.slider(
+                label = 'Seconds',
+                min_value = 0,
+                max_value = 59,
+                value = 0,
+                step = 1,
+                format = '%s"',
+                key = 'ss_lat_sec',
+                help = ""
+            )
 
-        st.divider()
-
-        long_deg = st.slider(
-            label = 'Degrees',
-            min_value = 0,
-            max_value = 180,
-            value = 0,
-            step = 1,
-            format = '%s°',
-            key = 'ss_long_deg',
-            help = ""
-        )
-        long_min = st.slider(
-            label = 'Minutes',
-            min_value = 0,
-            max_value = 59,
-            value = 0,
-            step = 1,
-            format = "%s'",
-            key = 'ss_long_min',
-            help = ""
-        )
-        long_sec = st.slider(
-            label = 'Seconds',
-            min_value = 0,
-            max_value = 59,
-            value = 0,
-            step = 1,
-            format = '%s"',
-            key = 'ss_long_sec',
-            help = ""
-        )
+        with st.expander(
+            label = "Longitude",
+            expanded = True
+        ):
+            long_deg = st.slider(
+                label = 'Degrees',
+                min_value = 0,
+                max_value = 180,
+                value = 0,
+                step = 1,
+                format = '%s°',
+                key = 'ss_long_deg',
+                help = ""
+            )
+            long_min = st.slider(
+                label = 'Minutes',
+                min_value = 0,
+                max_value = 59,
+                value = 0,
+                step = 1,
+                format = "%s'",
+                key = 'ss_long_min',
+                help = ""
+            )
+            long_sec = st.slider(
+                label = 'Seconds',
+                min_value = 0,
+                max_value = 59,
+                value = 0,
+                step = 1,
+                format = '%s"',
+                key = 'ss_long_sec',
+                help = ""
+            )
 
         lat = dec_deg(lat_deg, lat_min, lat_sec)
         long = dec_deg(long_deg, long_min, long_sec)
@@ -184,14 +190,6 @@ elif in_opt == 'opt_coord':
 
 st.divider()
 
-wx_opt = st.sidebar.selectbox(
-    label = 'Weather type',
-    options = ('fcst', 'ens', 'hist', 'clim', 'mar', 'fld', 'aq'),
-    format_func = lambda x: dict_wx_opt.get(x),
-    key = 'ss_wx_opt',
-    help = ""
-)
-
 with st.sidebar:
     result = date_range_picker(
         title = "Select a date range",
@@ -203,7 +201,48 @@ with st.sidebar:
 
 st.write("Result:", result)
 
-#if wx_opt == 'fcst':
+wx_opt = st.sidebar.selectbox(
+    label = 'Weather type',
+    options = ('fcst', 'ens', 'hist', 'clim', 'mar', 'fld', 'aq'),
+    format_func = lambda x: dict_wx_opt.get(x),
+    key = 'ss_wx_opt',
+    help = ""
+)
 
+def perf():
+    temp_unit = st.sidebar.radio(
+        label = 'Temperature Unit',
+        options = ('C', 'F'),
+        format_func = lambda x: dict_temp_unit.get(x),
+        horizontal = True,
+        key = 'ss_temp_unit',
+        help = ""
+    )
+
+    prec_unit = st.sidebar.radio(
+        label = 'Precipitation Unit',
+        options = ('mm', 'in'),
+        format_func = lambda x: dict_prec_unit.get(x),
+        horizontal = True,
+        key = 'ss_prec_unit',
+        help = ""
+    )
+
+    ws_unit = st.sidebar.radio(
+        label = 'Wind Speed Unit',
+        options = ('kmh', 'ms', 'mph', 'kn'),
+        format_func = lambda x: dict_ws_unit.get(x),
+        horizontal = True,
+        key = 'ss_ws_unit',
+        help = ""
+    )
+
+if any([
+    wx_opt == 'fcst',
+    wx_opt == 'ens',
+    wx_opt == 'hist',
+    wx_opt == 'clim'
+    ]):
+    perf()
 
 st.write(loc) #debug
