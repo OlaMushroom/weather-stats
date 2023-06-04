@@ -1,26 +1,20 @@
 from requests import get
 from geocoder import ip
 
-dict_in_opt = {
-    'opt_loc': "Location",
-    'opt_coord': "Coordinates"
-}
-
 dict_loc_opt = {
-    'loc_name': "Name/Postal code",
-    'loc_ip': "IP address"
+    'loc' : "Location",
+    'coord' : "Coordinates",
+    'name' : "Name/Postal code",
+    'ip' : "IP address",
+    'dd' : "Decimal degrees",
+    'dms' : "Sexagesimal (DMS)",
 }
 
-dict_coord_opt = {
-    'dec_deg': "Decimal degrees",
-    'dms': "Sexagesimal (DMS)"
-}
-
-dict_cardinal_dir = {
-    'north': "North",
-    'south': "South",
-    'east': "East",
-    'west': "West"
+dict_cd_dir = {
+    'N' : "North",
+    'S' : "South",
+    'E' : "East",
+    'W' : "West",
 }
 
 dict_wx_opt = {
@@ -30,27 +24,85 @@ dict_wx_opt = {
     'clim' : "Climate",
     'mar' : "Marine",
     'fld' : "Flood",
-    'aq' : "Air Quality"
+    'aq' : "Air Quality",
 }
 
-dict_temp_unit = {
-    'C': "Celsius (°C)",
-    'F': "Fahrenheit (°F)"
+dict_unit = {
+    'C' : "Celsius (°C)",
+    'F' : "Fahrenheit (°F)",
+    'm' : "Metric",
+    'imp' : "Imperial",
+    'mm' : "Millimeter",
+    'in' : "Inch",
+    'kmh' : "Km/h",
+    'ms' : "m/s",
+    'mph' : "mi/h (Mph)",
+    'kn' : "Knots",
 }
 
-dict_prec_unit = {
-    'mm': "Millimeter",
-    'in': "Inch"
+dict_mar = {
+    'len_unit' : {
+        'dflt' : "&length_unit=",
+        'm' : "metric",
+        'imp' : "imperial",
+    },
+    'hrly' : {
+        'dflt' : "&hourly=",
+
+        'mean' : {
+            'ht' : "wave_height,",
+            'dir' : "wave_direction,",
+            'prd' : "wave_period,",
+        },
+
+        'wnd' : {
+            'ht' : "wind_wave_height,",
+            'dir' : "wind_wave_direction,",
+            'prd' : "wind_wave_period,",
+            'prd_pk' : "wind_wave_peak_period,",
+        },
+
+        'swell' : {
+            'ht' : "swell_wave_height,",
+            'dir' : "swell_wave_direction,",
+            'prd' : "swell_wave_period,",
+            'prd_pk' : "swell_wave_peak_period,",
+        }
+    },
+
+    'dly' : {
+        'dflt' : "&daily=",
+    },
 }
 
-dict_ws_unit = {
-    'kmh': "Km/h",
-    'ms': "m/s",
-    'mph': "mi/h (Mph)",
-    'kn': "Knots"
-}
+dict_fld = {
+    'dly' : {
+        'dflt' : "&daily=",
+        'riv_dc' : "river_discharge,",
+        'riv_dc_med' : "river_discharge_median,",
+        'riv_dc_max' : "river_discharge_max,",
+        'riv_dc_min' : "river_discharge_min,",
+        'riv_dc_p25' : "river_discharge_p25,",
+        'riv_dc_p75' : "river_discharge_p75,",
+        'ens' : "&ensemble=true"
+    },
 
-dflt_param = '&timezone=auto&timeformat=unixtime'
+    'mdl' : {
+        'dflt': "&models=",
+
+        'v3' : {
+            'smls' : "seamless_v3,",
+            'fcst' : "forecast_v3,",
+            'consol' : "consolidated_v3,",
+        },
+
+        'v4' : {
+            'smls' : "seamless_v4,",
+            'fcst' : "forecast_v4,",
+            'consol' : "consolidated_v4,",
+        }
+    },
+}
 
 def dec_deg(dec, min, sec): return round(dec + min/60 + sec/3600, 4)
 
@@ -67,18 +119,16 @@ def find_ip(loc):
 
 def find_name(loc): return get('https://geocoding-api.open-meteo.com/v1/search?name=' + loc + '&count=1&language=en&format=json').json()['results'][0]
 
-def param(lat, long): return '?timeformat=unixtime&timezone=auto&latitude=' + lat + '&longitude=' + long
+def forecast(param, model): return get('https://api.open-meteo.com/v1/' + model + param).json()
 
-def forecast(lat, long, model): return get('https://api.open-meteo.com/v1/' + model + param(lat, long)).json()
+def ensemble(param): return get('https://ensemble-api.open-meteo.com/v1/ensemble' + param).json()
 
-def ensemble(lat, long, model): return get('https://ensemble-api.open-meteo.com/v1/ensemble' + param(lat, long)).json()
+def historical(param): return get('https://archive-api.open-meteo.com/v1/archive' + param).json()
 
-def historical(lat, long): return get('https://archive-api.open-meteo.com/v1/archive' + param(lat, long)).json()
+def climate(param): return get('https://climate-api.open-meteo.com/v1/climate' + param).json()
 
-def climate(lat, long): return get('https://climate-api.open-meteo.com/v1/climate' + param(lat, long)).json()
+def marine(param): return get('https://marine-api.open-meteo.com/v1/marine' + param).json()
 
-def marine(lat, long): return get('https://marine-api.open-meteo.com/v1/marine' + param(lat, long)).json()
+def flood(param): return get('https://flood-api.open-meteo.com/v1/flood' + param).json()
 
-def flood(lat, long): return get('https://flood-api.open-meteo.com/v1/flood' + param(lat, long)).json()
-
-def aq(lat, long): return get('https://air-quality-api.open-meteo.com/v1/air-quality' + param(lat, long)).json()
+def aq(param): return get('https://air-quality-api.open-meteo.com/v1/air-quality' + param).json()
