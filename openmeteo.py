@@ -224,21 +224,23 @@ with st.sidebar:
                     help = ""
                 )
 
-            lat = dec_deg(lat_deg, lat_min, lat_sec)
-            long = dec_deg(long_deg, long_min, long_sec)
+            lat = dd(lat_deg, lat_min, lat_sec)
+            long = dd(long_deg, long_min, long_sec)
 
         if lat_sign == 'north': lat *= 1
         elif lat_sign == 'south': lat *= -1
         if long_sign == 'east': long *= 1
         elif long_sign == 'west': long *= -1
 
-st.write('Latitude:', lat, 'Longitude:', long)
+coord = 'latitude=' + str(lat) + 'longitude=' + str(long)
+
+st.write('Coordinates:', coord)
 st.write("Date:", dt)
 
 wx_opt = stex_selectbox(
     label = 'Weather type',
     options = ('fcst', 'ens', 'hist', 'clim', 'mar', 'fld', 'aq'),
-    format_func = lambda x: dict_wx_opt.get(x),
+    format_func = lambda x: dict_wx.get(x),
     key = 'ss_wx_opt',
     help = ""
 )
