@@ -44,17 +44,20 @@ dict_clim = {
     'dly' : "&daily=", #default
 
     #variables:
+    'temp' : {
+        'mn' : "temperature_2m_mean,",
+    },
 
     #models:
     'mdl' : "&models=",
 
-    'c' : "CMCC_CM2_VHR4,",
-    'e' : "EC_Earth3P_HR,",
-    'f' : "FGOALS_f3_H,",
-    'h' : "HiRAM_SIT_HR,",
-    'mp' : "MPI_ESM1_2_XR,",
-    'mr' : "MRI_AGCM3_2_S,",
-    'n' : "NICAM16_8S,",
+    'EC' : "EC_Earth3P_HR,",
+    'MRI' : "MRI_AGCM3_2_S,",
+    'MIROC' : "NICAM16_8S,",
+    'CMCC' : "CMCC_CM2_VHR4,",
+    'MPI' : "MPI_ESM1_2_XR,",
+    'AS-RCEC' : "HiRAM_SIT_HR,",
+    'CAS' : "FGOALS_f3_H,",
 }
 
 dict_mar = {
