@@ -1,13 +1,28 @@
 import streamlit as st
+#...and some cool modules idk:
+
+#add blank lines (verticle spaces) to the code instead of spamming st.write() (uhh idk):
 #from streamlit_extras.add_vertical_space import add_vertical_space as stex_vert_sp
+
+#cooler header:
 from streamlit_extras.colored_header import colored_header as stex_header
+
+#button that saves its own state:
 #from streamlit_extras.stateful_button import button as stex_button
+
+#st.selectbox() but with "None" as default selection:
 from streamlit_extras.no_default_selectbox import selectbox as stex_selectbox
+
+#date picker but with a range selection:
 from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range_pick
-from datetime import datetime, timedelta
+
+from datetime import date, datetime, timedelta
 from modules import *
 
-param, loc = '&timeformat=unixtime&timezone=auto', ''
+#default parameter:
+#'&timeformat=unixtime&timezone=auto'
+
+param, loc = '', ''
 lat, long = 0, 0
 
 with st.sidebar:
@@ -19,14 +34,15 @@ with st.sidebar:
         color_name = 'blue-green-70'
     )
 
-    dt = stex_dt_range_pick(
-        title = "Select a date range",
-        default_start = datetime.now(),
-        default_end = datetime.now(),
-        min_date = datetime.now(),
-        max_date = datetime.now() + timedelta(days = 16),
-        key = "ss_date"
-    )
+    def get_date(dt_min, dt_max, dt_key):
+        return stex_dt_range_pick(
+            title = "Select a date range",
+            default_start = date.today(),
+            default_end = date.today(),
+            min_date = dt_min,
+            max_date = dt_max,
+            key = dt_key
+        )
 
     st.divider()
 
@@ -57,7 +73,11 @@ with st.sidebar:
                 key = 'ss_loc_name',
                 help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
             )
-            if in_loc != '': loc = find_name(in_loc)
+
+            if in_loc != '':
+                loc = find_name(in_loc)
+                lat = loc['latitude']
+                long = loc['longitude']            
 
         elif loc_opt == 'ip':
             col_ip_txtin, col_ip_button = st.columns(
@@ -83,6 +103,8 @@ with st.sidebar:
 
             if in_loc != '':
                 loc = find_ip(in_loc)
+                lat = loc['lat']
+                long = loc['long']
                 st.write("The current IP address is:", loc['ip'])
 
     elif in_opt == 'coord':
@@ -232,10 +254,7 @@ with st.sidebar:
         if long_sign == 'east': long *= 1
         elif long_sign == 'west': long *= -1
 
-coord = 'latitude=' + str(lat) + 'longitude=' + str(long)
-
-st.write('Coordinates:', coord)
-st.write("Date:", dt)
+coord = 'latitude=' + str(lat) + '&longitude=' + str(long)
 
 wx_opt = stex_selectbox(
     label = 'Weather type',
@@ -297,4 +316,15 @@ if wx_opt == 'mar':
         help = ""
     )
 
-st.write(loc) #debug
+if wx_opt == 'fld':
+    dt = get_date(
+        dt_min = date(1984, 1, 1),
+        dt_max = date.today() + timedelta(days = 229),
+        dt_key = 'ss_dt_fld')
+    
+    param = coord + '&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d')
+    st.write("Date:", dt)
+
+#debug:
+st.write('Coordinates:', param)
+st.write(loc)

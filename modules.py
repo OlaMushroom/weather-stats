@@ -41,16 +41,41 @@ dict_wx = {
 }
 
 dict_clim = {
-    'dly' : "&daily=", #default
-
-    #variables:
     'temp' : {
         'mn' : "temperature_2m_mean,",
+        'max' : "temperature_2m_max,",
+        'min' : "temperature_2m_min,",
     },
 
-    #models:
-    'mdl' : "&models=",
+    'ws' : {
+        'mn' : "windspeed_10m_mean,",
+        'max' : "windspeed_10m_max,",
+    },
 
+    'hmd' : {
+        'mn' : "relative_humidity_2m_mean,",
+        'max' : "relative_humidity_2m_max,",
+        'min' : "relative_humidity_2m_min,",
+    },
+
+    'dp' : {
+        'mn' : "dewpoint_2m_mean,",
+        'max' : "dewpoint_2m_max,",
+        'min' : "dewpoint_2m_min,",
+    },
+
+    'swr' : "shortwave_radiation_sum,",
+    'prec' : "precipitation_sum,",
+    'ra' : "rain_sum,",
+    'snwfl' : "snowfall_sum,",
+    'cc' : "cloudcover_mean,",
+    'sm' : "soil_moisture_0_to_10cm_mean,",
+    'slp' : "pressure_msl_mean,",
+    'vpd' : "vapor_pressure_deficit_mean,",
+    'ref_ET0' : "et0_fao_evapotranspiration_sum,",
+
+
+    #models:
     'EC' : "EC_Earth3P_HR,",
     'MRI' : "MRI_AGCM3_2_S,",
     'MIROC' : "NICAM16_8S,",
@@ -61,55 +86,53 @@ dict_clim = {
 }
 
 dict_mar = {
+    'hrly' : {
+        'mn' : {
+            'ht' : "wave_height,",
+            'dir' : "wave_direction,",
+            'prd' : "wave_period,",
+        },
+        'wnd' : {
+            'ht' : "wind_wave_height,",
+            'dir' : "wind_wave_direction,",
+            'prd' : "wind_wave_period,",
+            'prd_pk' : "wind_wave_peak_period,",
+        },
+        'swll' : {
+            'ht' : "swell_wave_height,",
+            'dir' : "swell_wave_direction,",
+            'prd' : "swell_wave_period,",
+            'prd_pk' : "swell_wave_peak_period,",
+        },
+    },
+
+    'dly' : {
+        'mn' : {
+            'ht' : "wave_height_max,",
+            'dir' : "wave_direction_dominant,",
+            'prd' : "wave_period_max,",
+        },
+        'wnd' : {
+            'ht' : "wind_wave_height_max,",
+            'dir' : "wind_wave_direction_dominant,",
+            'prd' : "wind_wave_period_max,",
+            'prd_pk' : "wind_wave_peak_period_max,",
+        },
+        'swll' : {
+            'ht' : "swell_wave_height_max,",
+            'dir' : "swell_wave_direction_dominant,",
+            'prd' : "swell_wave_period_max,",
+            'prd_pk' : "swell_wave_peak_period_max,",
+        },
+    },
+
     #units:
     'unit' : "&length_unit=",
     'm' : "metric",
     'imp' : "imperial",
-
-    #variables:
-    'hrly' : "&hourly=",
-    'hrly_mn' : {
-        'ht' : "wave_height,",
-        'dir' : "wave_direction,",
-        'prd' : "wave_period,",
-    },
-    'hrly_wnd' : {
-        'ht' : "wind_wave_height,",
-        'dir' : "wind_wave_direction,",
-        'prd' : "wind_wave_period,",
-        'prd_pk' : "wind_wave_peak_period,",
-    },
-    'hrly_swll' : {
-        'ht' : "swell_wave_height,",
-        'dir' : "swell_wave_direction,",
-        'prd' : "swell_wave_period,",
-        'prd_pk' : "swell_wave_peak_period,",
-    },
-
-    'dly' : "&daily=",
-    'dly_mn' : {
-        'ht' : "wave_height_max,",
-        'dir' : "wave_direction_dominant,",
-        'prd' : "wave_period_max,",
-    },
-    'dly_wnd' : {
-        'ht' : "wind_wave_height_max,",
-        'dir' : "wind_wave_direction_dominant,",
-        'prd' : "wind_wave_period_max,",
-        'prd_pk' : "wind_wave_peak_period_max,",
-    },
-    'dly_swll' : {
-        'ht' : "swell_wave_height_max,",
-        'dir' : "swell_wave_direction_dominant,",
-        'prd' : "swell_wave_period_max,",
-        'prd_pk' : "swell_wave_peak_period_max,",
-    },
 }
 
 dict_fld = {
-    'dly' : "&daily=", #default
-
-    #variables:
     'dc' : "river_discharge,",
     'med' : "river_discharge_median,",
     'max' : "river_discharge_max,",
@@ -119,14 +142,11 @@ dict_fld = {
     'ens' : "&ensemble=true",
 
     #models:
-    'mdl': "&models=",
-
     'v3' : {
         'smls' : "seamless_v3,",
         'fcst' : "forecast_v3,",
         'consol' : "consolidated_v3,",
     },
-
     'v4' : {
         'smls' : "seamless_v4,",
         'fcst' : "forecast_v4,",
@@ -135,9 +155,6 @@ dict_fld = {
 }
 
 dict_aq = {
-    'hrly' : "&hourly=", #default
-
-    #variables:
     'uv' : "uv_index,",
     'uv_cs' : "uv_index_clear_sky,",
     'du' : "dust,",
@@ -174,12 +191,6 @@ dict_aq = {
     'us_no2' : "us_aqi_no2,",
     'us_so2' : "us_aqi_so2,",
     'us_o3' : "us_aqi_o3,",
-
-    #domains:
-    'dom' : "&domains=",
-
-    'gl' : "cams_global",
-    'eu' : "cams_europe",
 }
 
 def dd(dec, min, sec): return round(dec + min/60 + sec/3600, 4)
