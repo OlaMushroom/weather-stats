@@ -2,8 +2,10 @@ import streamlit as st
 from datetime import datetime, timedelta
 from requests import get
 
-'''
+
 location = ''
+
+'''
 if 'ss_key_location' not in st.session_state:
     st.session_state.ss_key_location = ''
 if st.session_state.ss_key_location != st.session_state.ss_key_input_location and st.session_state.ss_key_input_location != '':
