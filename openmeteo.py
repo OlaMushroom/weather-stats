@@ -5,18 +5,23 @@ import streamlit as st
 #from streamlit_extras.add_vertical_space import add_vertical_space as stex_vert_sp
 
 #cooler header:
-from streamlit_extras.colored_header import colored_header as stex_header
+#from streamlit_extras.colored_header import colored_header as stex_header
 
 #button that saves its own state:
 #from streamlit_extras.stateful_button import button as stex_button
 
+#toggle switch
+from streamlit_toggle import st_toggle_switch as stex_switch
+
 #st.selectbox() but with "None" as default selection:
-from streamlit_extras.no_default_selectbox import selectbox as stex_selectbox
+#from streamlit_extras.no_default_selectbox import selectbox as stex_selbx
 
 #date picker but with a range selection:
-from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range_pick
+from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range
 
 from datetime import date, datetime, timedelta
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
 from modules import *
 
 #default parameter:
@@ -25,27 +30,27 @@ from modules import *
 param, loc = '', ''
 lat, long = 0, 0
 
+def get_date(dt_min, dt_max, dt_key):
+    return stex_dt_range(
+        title = "Select a date range",
+        default_start = date.today(),
+        default_end = date.today(),
+        min_date = dt_min,
+        max_date = dt_max,
+        key = dt_key
+    )
+
 with st.sidebar:
     st.title('WEATHER')
     
+    '''
     stex_header(
         label = '',
         description = '',
         color_name = 'blue-green-70'
     )
-
-    def get_date(dt_min, dt_max, dt_key):
-        return stex_dt_range_pick(
-            title = "Select a date range",
-            default_start = date.today(),
-            default_end = date.today(),
-            min_date = dt_min,
-            max_date = dt_max,
-            key = dt_key
-        )
-
-    st.divider()
-
+    '''
+    
     in_opt = st.radio(
         label = 'Search type',
         options = ('loc', 'coord'),
@@ -255,10 +260,11 @@ with st.sidebar:
         elif long_sign == 'west': long *= -1
 
 coord = 'latitude=' + str(lat) + '&longitude=' + str(long)
+param += coord
 
-wx_opt = stex_selectbox(
+wx_opt = st.selectbox(
     label = 'Weather type',
-    options = ('fcst', 'ens', 'hist', 'clim', 'mar', 'fld', 'aq'),
+    options = (None, 'fcst', 'ens', 'hist', 'clim', 'aq', 'mar', 'fld'),
     format_func = lambda x: dict_wx.get(x),
     key = 'ss_wx_opt',
     help = ""
@@ -266,7 +272,7 @@ wx_opt = stex_selectbox(
 
 st.write("Result:", wx_opt)
 
-def perf():
+def pref():
     with st.expander(
         label = 'Preferences',
         expanded = True
@@ -304,7 +310,8 @@ if any([
     wx_opt == 'hist',
     wx_opt == 'clim'
     ]):
-    perf()
+    param += '&timezone=auto'
+    pref()
 
 if wx_opt == 'mar':
     len_unit = st.radio(
@@ -319,12 +326,94 @@ if wx_opt == 'mar':
 if wx_opt == 'fld':
     dt = get_date(
         dt_min = date(1984, 1, 1),
-        dt_max = date.today() + timedelta(days = 229),
-        dt_key = 'ss_dt_fld')
+        dt_max = date.today() + relativedelta(months = +7, weeks= +2),
+        dt_key = 'ss_dt_fld'
+    )
     
-    param = coord + '&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d')
+    param = coord + '&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d') + '&daily='
     st.write("Date:", dt)
 
+    fld_dc =  st.checkbox(
+        label = 'River Discharge',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc',
+        help = ""
+    )
+    if fld_dc == True: param += dict_fld['dc']
+    elif fld_dc == False: param.replace(dict_fld['dc'], '')
+
+    fld_dc_mn = st.checkbox(
+        label = 'River Discharge Mean',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc_mn',
+        help = ""
+    )
+    if fld_dc_mn == True: param += dict_fld['mn']
+    elif fld_dc_mn == False: param.replace(dict_fld['mn'], '')
+
+    fld_dc_med = st.checkbox(
+        label = 'River Discharge Median',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc_med',
+        help = ""
+    )
+    if fld_dc_med == True: param += dict_fld['med']
+    elif fld_dc_med == False: param.replace(dict_fld['med'], '')
+
+    fld_dc_max = st.checkbox(
+        label = 'River Discharge Max',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc_max',
+        help = ""
+    )
+    if fld_dc_max == True: param += dict_fld['max']
+    elif fld_dc_max == False: param.replace(dict_fld['max'], '')
+
+    fld_dc_min = st.checkbox(
+        label = 'River Discharge Min',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc_min',
+        help = ""
+    )
+    if fld_dc_min == True: param += dict_fld['min']
+    elif fld_dc_min == False: param.replace(dict_fld['min'], '')
+
+    fld_dc_p25 = st.checkbox(
+        label = 'River Discharge 25ᵗʰ Percentile',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc_p25',
+        help = ""
+    )
+    if fld_dc_p25 == True: param += dict_fld['p25']
+    elif fld_dc_p25 == False: param.replace(dict_fld['p25'], '')
+
+    fld_dc_p75 = st.checkbox(
+        label = 'River Discharge 75ᵗʰ Percentile',
+        value = False,
+        disabled = False,
+        key = 'ss_fld_dc_p75',
+        help = ""
+    )
+    if fld_dc_p75 == True: param += dict_fld['p75']
+    elif fld_dc_p75 == False: param.replace(dict_fld['p75'], '')
+
+    fld_ens =  stex_switch(
+        label = "Enable All 50 Ensemble Members",
+        default_value = False,
+        label_after = True,
+        inactive_color = "#fafafa",
+        active_color = "#fafafa",
+        track_color = "#00c0f2",
+        key = "ss_fld_ens"
+    )
+    if fld_ens == True: param += dict_fld['ens']
+    elif fld_ens == False: param.replace(dict_fld['ens'], '')
 #debug:
-st.write('Coordinates:', param)
+st.write('Parameters:', param)
 st.write(loc)

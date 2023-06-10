@@ -1,3 +1,5 @@
+"""splitted code"""
+
 from requests import get
 from geocoder import ip
 
@@ -31,13 +33,14 @@ dict_unit = {
 }
 
 dict_wx = {
+    None : '---',
     'fcst' : "Forecast",
     'ens' : "Ensemble",
     'hist' : "Historical",
     'clim' : "Climate",
+    'aq' : "Air Quality",
     'mar' : "Marine",
     'fld' : "Flood",
-    'aq' : "Air Quality",
 }
 
 dict_clim = {
@@ -134,6 +137,7 @@ dict_mar = {
 
 dict_fld = {
     'dc' : "river_discharge,",
+    'mn' : "river_discharge_mean,",
     'med' : "river_discharge_median,",
     'max' : "river_discharge_max,",
     'min' : "river_discharge_min,",
@@ -216,8 +220,8 @@ def historical(param): return get('https://archive-api.open-meteo.com/v1/archive
 
 def climate(param): return get('https://climate-api.open-meteo.com/v1/climate' + param).json()
 
+def aq(param): return get('https://air-quality-api.open-meteo.com/v1/air-quality?' + param).json()
+
 def marine(param): return get('https://marine-api.open-meteo.com/v1/marine?' + param).json()
 
 def flood(param): return get('https://flood-api.open-meteo.com/v1/flood?' + param).json()
-
-def aq(param): return get('https://air-quality-api.open-meteo.com/v1/air-quality?' + param).json()
