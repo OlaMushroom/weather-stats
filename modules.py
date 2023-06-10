@@ -146,16 +146,13 @@ dict_fld = {
     'ens' : "&ensemble=true",
 
     #models:
-    'v3' : {
-        'smls' : "seamless_v3,",
-        'fcst' : "forecast_v3,",
-        'consol' : "consolidated_v3,",
-    },
-    'v4' : {
-        'smls' : "seamless_v4,",
-        'fcst' : "forecast_v4,",
-        'consol' : "consolidated_v4,",
-    },
+    'v3_smls' : "seamless_v3,",
+    'v3_fcst' : "forecast_v3,",
+    'v3_consol' : "consolidated_v3,",
+    'v4_smls' : "seamless_v4,",
+    'v4_fcst' : "forecast_v4,",
+    'v4_consol' : "consolidated_v4,",
+
 }
 
 dict_aq = {
