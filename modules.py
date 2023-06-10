@@ -10,9 +10,6 @@ dict_loc_opt = {
     'ip' : "IP address",
     'dd' : "Decimal degrees",
     'dms' : "Sexagesimal (DMS)",
-}
-
-dict_cd_dir = {
     'N' : "North",
     'S' : "South",
     'E' : "East",
@@ -44,28 +41,20 @@ dict_wx = {
 }
 
 dict_clim = {
-    'temp' : {
-        'mn' : "temperature_2m_mean,",
-        'max' : "temperature_2m_max,",
-        'min' : "temperature_2m_min,",
-    },
+    'temp_mn' : "temperature_2m_mean,",
+    'temp_max' : "temperature_2m_max,",
+    'temp_min' : "temperature_2m_min,",
 
-    'ws' : {
-        'mn' : "windspeed_10m_mean,",
-        'max' : "windspeed_10m_max,",
-    },
+    'ws_mn' : "windspeed_10m_mean,",
+    'ws_max' : "windspeed_10m_max,",
 
-    'hmd' : {
-        'mn' : "relative_humidity_2m_mean,",
-        'max' : "relative_humidity_2m_max,",
-        'min' : "relative_humidity_2m_min,",
-    },
+    'hmd_mn' : "relative_humidity_2m_mean,",
+    'hmd_max' : "relative_humidity_2m_max,",
+    'hmd_min' : "relative_humidity_2m_min,",
 
-    'dp' : {
-        'mn' : "dewpoint_2m_mean,",
-        'max' : "dewpoint_2m_max,",
-        'min' : "dewpoint_2m_min,",
-    },
+    'dp_mn' : "dewpoint_2m_mean,",
+    'dp_max' : "dewpoint_2m_max,",
+    'dp_min' : "dewpoint_2m_min,",
 
     'swr' : "shortwave_radiation_sum,",
     'prec' : "precipitation_sum,",
@@ -75,8 +64,7 @@ dict_clim = {
     'sm' : "soil_moisture_0_to_10cm_mean,",
     'slp' : "pressure_msl_mean,",
     'vpd' : "vapor_pressure_deficit_mean,",
-    'ref_ET0' : "et0_fao_evapotranspiration_sum,",
-
+    'et0' : "et0_fao_evapotranspiration_sum,",
 
     #models:
     'EC' : "EC_Earth3P_HR,",
@@ -90,49 +78,36 @@ dict_clim = {
 
 dict_mar = {
     'hrly' : {
-        'mn' : {
-            'ht' : "wave_height,",
-            'dir' : "wave_direction,",
-            'prd' : "wave_period,",
-        },
-        'wnd' : {
-            'ht' : "wind_wave_height,",
-            'dir' : "wind_wave_direction,",
-            'prd' : "wind_wave_period,",
-            'prd_pk' : "wind_wave_peak_period,",
-        },
-        'swll' : {
-            'ht' : "swell_wave_height,",
-            'dir' : "swell_wave_direction,",
-            'prd' : "swell_wave_period,",
-            'prd_pk' : "swell_wave_peak_period,",
-        },
+        'mn_ht' : "wave_height,",
+        'mn_dir' : "wave_direction,",
+        'mn_prd' : "wave_period,",
+
+        'wnd_ht' : "wind_wave_height,",
+        'wnd_dir' : "wind_wave_direction,",
+        'wnd_prd' : "wind_wave_period,",
+        'wnd_prd_pk' : "wind_wave_peak_period,",
+
+        'swll_ht' : "swell_wave_height,",
+        'swll_dir' : "swell_wave_direction,",
+        'swll_prd' : "swell_wave_period,",
+        'swll_prd_pk' : "swell_wave_peak_period,",
     },
 
     'dly' : {
-        'mn' : {
-            'ht' : "wave_height_max,",
-            'dir' : "wave_direction_dominant,",
-            'prd' : "wave_period_max,",
-        },
-        'wnd' : {
-            'ht' : "wind_wave_height_max,",
-            'dir' : "wind_wave_direction_dominant,",
-            'prd' : "wind_wave_period_max,",
-            'prd_pk' : "wind_wave_peak_period_max,",
-        },
-        'swll' : {
-            'ht' : "swell_wave_height_max,",
-            'dir' : "swell_wave_direction_dominant,",
-            'prd' : "swell_wave_period_max,",
-            'prd_pk' : "swell_wave_peak_period_max,",
-        },
-    },
+        'mn_ht' : "wave_height_max,",
+        'mn_dir' : "wave_direction_dominant,",
+        'mn_prd' : "wave_period_max,",
 
-    #units:
-    'unit' : "&length_unit=",
-    'm' : "metric",
-    'imp' : "imperial",
+        'wnd_ht' : "wind_wave_height_max,",
+        'wnd_dir' : "wind_wave_direction_dominant,",
+        'wnd_prd' : "wind_wave_period_max,",
+        'wnd_prd_pk' : "wind_wave_peak_period_max,",
+
+        'swll_ht' : "swell_wave_height_max,",
+        'swll_dir' : "swell_wave_direction_dominant,",
+        'swll_prd' : "swell_wave_period_max,",
+        'swll_prd_pk' : "swell_wave_peak_period_max,",
+    },
 }
 
 dict_fld = {
