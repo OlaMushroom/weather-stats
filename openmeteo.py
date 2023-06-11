@@ -322,188 +322,63 @@ if wx_opt == 'mar':
 
 if wx_opt == 'fld':    
     dly = '&daily='
-
-    col_fld1, col_fld2 = st.columns(
-        spec = [0.5, 0.5],
-        gap = 'small'
+    dly_opt = st.multiselect(
+        label = 'Daily Weather Variables',
+        options = ['dc', 'mn', 'med', 'max', 'min', 'p25', 'p75'],
+        default = None,
+        format_func = lambda x: dict_fld[x][1],
+        disabled = False,
+        key = None,
+        help = ""
+    )
+    for opt in dly_opt: dly += dict_fld[opt][0]
+    param += dly
+    
+    mdl = '&models='
+    fld_mdl = stex_switch(
+        label = "Enable Flood models",
+        default_value = False,
+        label_after = True,
+        inactive_color = "#fafafa",
+        active_color = "#fafafa",
+        track_color = "#00c0f2",
+        key = "ss_fld_mdl"
     )
 
-    with col_fld1:
-        dc =  st.checkbox(
-            label = 'River Discharge',
-            value = False,
+    v4_consol = False #placeholder variable to prevent unbound because i am stupid
+
+    if fld_mdl == True:
+        mdl_opt = st.multiselect(
+            label = 'Daily Weather Variables',
+            options = ['v3_smls', 'v3_fcst', 'v3_consol', 'v4_consol'],
+            default = None,
+            format_func = lambda x: dict_fld[x][1],
             disabled = False,
-            key = 'ss_fld_dc',
+            key = None,
             help = ""
         )
-        if dc == True: dly += dict_fld['dc']
-        elif dc == False: dly.replace(dict_fld['dc'], '')
+        if 'v4_consol' in mdl_opt: v4_consol = True
+        for opt in mdl_opt: mdl += dict_fld[opt][0]
+        param += mdl
+    elif fld_mdl == False: param.replace(mdl, '')
 
-        dc_mn = st.checkbox(
-            label = 'River Discharge Mean',
-            value = False,
-            disabled = False,
-            key = 'ss_fld_dc_mn',
-            help = ""
-        )
-        if dc_mn == True: dly += dict_fld['mn']
-        elif dc_mn == False: dly.replace(dict_fld['mn'], '')
-
-        dc_med = st.checkbox(
-            label = 'River Discharge Median',
-            value = False,
-            disabled = False,
-            key = 'ss_fld_dc_med',
-            help = ""
-        )
-        if dc_med == True: dly += dict_fld['med']
-        elif dc_med == False: dly.replace(dict_fld['med'], '')
-
-        dc_max = st.checkbox(
-            label = 'River Discharge Max',
-            value = False,
-            disabled = False,
-            key = 'ss_fld_dc_max',
-            help = ""
-        )
-        if dc_max == True: dly += dict_fld['max']
-        elif dc_max == False: dly.replace(dict_fld['max'], '')
-
-        dc_min = st.checkbox(
-            label = 'River Discharge Min',
-            value = False,
-            disabled = False,
-            key = 'ss_fld_dc_min',
-            help = ""
-        )
-        if dc_min == True: dly += dict_fld['min']
-        elif dc_min == False: dly.replace(dict_fld['min'], '')
-
-        dc_p25 = st.checkbox(
-            label = 'River Discharge 25ᵗʰ Percentile',
-            value = False,
-            disabled = False,
-            key = 'ss_fld_dc_p25',
-            help = ""
-        )
-        if dc_p25 == True: dly += dict_fld['p25']
-        elif dc_p25 == False: dly.replace(dict_fld['p25'], '')
-
-        dc_p75 = st.checkbox(
-            label = 'River Discharge 75ᵗʰ Percentile',
-            value = False,
-            disabled = False,
-            key = 'ss_fld_dc_p75',
-            help = ""
-        )
-        if dc_p75 == True: dly += dict_fld['p75']
-        elif dc_p75 == False: dly.replace(dict_fld['p75'], '')
-
-    param += dly
-
-    mdl = '&models='
-
-    with col_fld2:
-        fld_mdl = stex_switch(
-            label = "Enable Flood models",
-            default_value = False,
-            label_after = True,
-            inactive_color = "#fafafa",
-            active_color = "#fafafa",
-            track_color = "#00c0f2",
-            key = "ss_fld_mdl"
-        )
-
-        v4_consol = False #placeholder variable to prevent unbound because i am stupid
-
-        if fld_mdl == True:
-            with st.expander(
-                label = "Flood models",
-                expanded = True
-            ):
-                v3_smls = st.checkbox(
-                label = 'GloFAS v3 Seamless',
-                value = False,
-                disabled = False,
-                key = 'ss_v3_smls',
-                help = "Combines both Forecast and Consolidated historical data."
-                )
-                if v3_smls == True: mdl += dict_fld['v3_smls']
-                elif v3_smls == False: mdl.replace(dict_fld['v3_smls'], '')
-
-                v3_fcst = st.checkbox(
-                label = 'GloFAS v3 Forecast',
-                value = False,
-                disabled = False,
-                key = 'ss_v3_fcst',
-                help = ""
-                )
-                if v3_fcst == True: mdl += dict_fld['v3_fcst']
-                elif v3_fcst == False: mdl.replace(dict_fld['v3_fcst'], '')
-
-                v3_consol = st.checkbox(
-                label = 'GloFAS v3 Consolidated',
-                value = False,
-                disabled = False,
-                key = 'ss_v3_consol',
-                help = ""
-                )
-                if v3_consol == True: mdl += dict_fld['v3_consol']
-                elif v3_consol == False: mdl.replace(dict_fld['v3_consol'], '')
-
-                v4_smls = st.checkbox(
-                label = 'GloFAS v4 Seamless',
-                value = False,
-                disabled = True,
-                key = 'ss_v4_smls',
-                help = "Combines both Forecast and Consolidated historical data. Due to the unavailability of v4 Forecast, this is not available yet."
-                )
-                if v4_smls == True: mdl += dict_fld['v4_smls']
-                elif v4_smls == False: mdl.replace(dict_fld['v4_smls'], '')
-
-                v4_fcst = st.checkbox(
-                label = 'GloFAS v4 Forecast',
-                value = False,
-                disabled = True,
-                key = 'ss_v4_fcst',
-                help = "Version 4 Forecast is not available yet."
-                )
-                if v4_fcst == True: mdl += dict_fld['v4_fcst']
-                elif v4_fcst == False: mdl.replace(dict_fld['v4_fcst'], '')
-
-                v4_consol = st.checkbox(
-                label = 'GloFAS v4 Consolidated',
-                value = False,
-                disabled = False,
-                key = 'ss_v4_consol',
-                help = "Available only as historical reanalysis data (1984 - 2022)."
-                )
-                if v4_consol == True: mdl += dict_fld['v4_consol']
-                elif v4_consol == False: mdl.replace(dict_fld['v4_consol'], '')
-
-                param += mdl
-
-        elif fld_mdl == False: param.replace(mdl, '')
-
-        ens =  stex_switch(
-            label = "Enable All 50 Ensemble Members",
-            default_value = False,
-            label_after = True,
-            inactive_color = "#fafafa",
-            active_color = "#fafafa",
-            track_color = "#00c0f2",
-            key = "ss_fld_ens"
-        )
-        if ens == True: param += dict_fld['ens']
-        elif ens == False: param.replace(dict_fld['ens'], '')
+    ens =  stex_switch(
+        label = "Enable All 50 Ensemble Members",
+        default_value = False,
+        label_after = True,
+        inactive_color = "#fafafa",
+        active_color = "#fafafa",
+        track_color = "#00c0f2",
+        key = "ss_fld_ens"
+    )
+    if ens == True: param += dict_fld['ens']
+    elif ens == False: param.replace(dict_fld['ens'], '')
 
     dt_max = date.today() + relativedelta(months = +7, weeks= +2)
     dt_start, dt_end = date.today(), date.today()
-
     if v4_consol == True:
-        dt_start, dt_end = date(2022, 6, 30), date(2022, 6, 30)
         dt_max = date(2022, 6, 30)
-
+        dt_start, dt_end = date(2022, 6, 30), date(2022, 6, 30)
     dt = get_date(
         start = dt_start,
         end = dt_end,
@@ -512,9 +387,8 @@ if wx_opt == 'fld':
         key = 'ss_dt_fld'
     )
     
-    st.write("Date:", dt) #debug
-
     param += ('&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d'))
+    st.write("Date:", dt) #debug
     
 #debug:
 st.write('Parameters:', param)

@@ -111,23 +111,22 @@ dict_mar = {
 }
 
 dict_fld = {
-    'dc' : "river_discharge,",
-    'mn' : "river_discharge_mean,",
-    'med' : "river_discharge_median,",
-    'max' : "river_discharge_max,",
-    'min' : "river_discharge_min,",
-    'p25' : "river_discharge_p25,",
-    'p75' : "river_discharge_p75,",
+    'dc' : ["river_discharge,", "River Discharge"],
+    'mn' : ["river_discharge_mean,", "River Discharge Mean"],
+    'med' : ["river_discharge_median,", "River Discharge Median"],
+    'max' : ["river_discharge_max,", "River Discharge Max"],
+    'min' : ["river_discharge_min,", "River Discharge Min"],
+    'p25' : ["river_discharge_p25,", "River Discharge 25ᵗʰ Percentile"],
+    'p75' : ["river_discharge_p75,", "River Discharge 75ᵗʰ Percentile"],
     'ens' : "&ensemble=true",
 
     #models:
-    'v3_smls' : "seamless_v3,",
-    'v3_fcst' : "forecast_v3,",
-    'v3_consol' : "consolidated_v3,",
-    'v4_smls' : "seamless_v4,",
-    'v4_fcst' : "forecast_v4,",
-    'v4_consol' : "consolidated_v4,",
-
+    'v3_smls' : ["seamless_v3,", "GloFAS v3 Seamless"],
+    'v3_fcst' : ["forecast_v3,", "GloFAS v3 Forecast"],
+    'v3_consol' : ["consolidated_v3,", "GloFAS v3 Consolidated"],
+    'v4_smls' : ["seamless_v4,", "GloFAS v4 Seamless"],
+    'v4_fcst' : ["forecast_v4,", "GloFAS v4 Forecast"],
+    'v4_consol' : ["consolidated_v4,", "GloFAS v4 Consolidated"],
 }
 
 dict_aq = {
