@@ -306,7 +306,7 @@ if any([
     wx_opt == 'ens',
     wx_opt == 'hist',
     wx_opt == 'clim'
-    ]):
+]):
     param += '&timezone=auto'
     pref()
 
@@ -345,7 +345,7 @@ if wx_opt == 'fld':
         key = "ss_fld_mdl"
     )
 
-    v4_consol = False #placeholder variable to prevent unbound because i am stupid
+    mdl_consol = False #placeholder variable to prevent unbound because i am stupid
 
     if fld_mdl == True:
         mdl_opt = st.multiselect(
@@ -357,9 +357,14 @@ if wx_opt == 'fld':
             key = None,
             help = ""
         )
-        if 'v4_consol' in mdl_opt: v4_consol = True
         for opt in mdl_opt: mdl += dict_fld[opt][0]
         param += mdl
+
+        if all([
+            not not mdl_opt, #lmao not not
+            'v3_smls' not in mdl_opt,
+            'v3_fcst' not in mdl_opt, 
+        ]): mdl_consol = True
     elif fld_mdl == False: param.replace(mdl, '')
 
     ens =  stex_switch(
@@ -376,9 +381,9 @@ if wx_opt == 'fld':
 
     dt_max = date.today() + relativedelta(months = +7, weeks= +2)
     dt_start, dt_end = date.today(), date.today()
-    if v4_consol == True:
-        dt_max = date(2022, 6, 30)
-        dt_start, dt_end = date(2022, 6, 30), date(2022, 6, 30)
+    if mdl_consol == True:
+        dt_max = date(2022, 7, 31)
+        dt_start, dt_end = date(2022, 7, 31), date(2022, 7, 31)
     dt = get_date(
         start = dt_start,
         end = dt_end,
