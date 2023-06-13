@@ -168,8 +168,6 @@ dict_aq = {
     'us_o3' : "us_aqi_o3,",
 }
 
-def dd(dec, min, sec): return round(dec + min/60 + sec/3600, 4)
-
 def find_ip(loc):
     g = ip(loc)
     return {
