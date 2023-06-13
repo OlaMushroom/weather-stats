@@ -35,8 +35,8 @@ def get_date(start, end, min, max, key):
 with st.sidebar:
     in_opt = st.radio(
         label = 'Search type',
-        options = ('coord', 'loc', 'ip'),
-        format_func = lambda x: dict_loc_opt.get(x),
+        options = ('coord', 'name', 'ip'),
+        format_func = lambda x: dict_loc.get(x),
         horizontal = True,
         label_visibility = 'collapsed',
         key = 'ss_in',
@@ -66,10 +66,10 @@ with st.sidebar:
             help = "Use negative value for West"
         )
 
-    elif in_opt == 'loc':
+    elif in_opt == 'name':
         in_loc = st.text_input(
-            label = 'Location name or postal code',
-            key = 'ss_loc_name',
+            label = 'Location name or postal code:',
+            key = 'ss_name',
             help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
         )
 
@@ -80,14 +80,14 @@ with st.sidebar:
 
     elif in_opt == 'ip':
         in_loc = st.text_input(
-            label = 'IP address',
-            key = 'ss_loc_ip',
+            label = 'IP address:',
+            key = 'ss_ip',
             help = "Type location's IP address."
         )
 
         if st.button(
             label = 'Get your IP!',
-            key = 'ss_ip_get',
+            #key = 'ss_ip_get',
             help = "Click here to get your current device's IP address."
         ): in_loc = 'me'
 

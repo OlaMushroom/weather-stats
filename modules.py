@@ -3,17 +3,10 @@
 from requests import get
 from geocoder import ip
 
-dict_loc_opt = {
-    'loc' : "Location",
+dict_loc = {
     'coord' : "Coordinates",
     'name' : "Name/Postal code",
     'ip' : "IP address",
-    'dd' : "Decimal degrees",
-    'dms' : "Sexagesimal (DMS)",
-    'N' : "North",
-    'S' : "South",
-    'E' : "East",
-    'W' : "West",
 }
 
 dict_unit = {
@@ -76,6 +69,45 @@ dict_clim = {
     'CAS' : "FGOALS_f3_H,",
 }
 
+dict_aq = {
+    'uv' : "uv_index,",
+    'uv_cs' : "uv_index_clear_sky,",
+    'du' : "dust,",
+    'aod' : "aerosol_optical_depth,",
+    'pm10' : "pm10,",
+    'pm2.5' : "pm2_5,",
+    'co' : "carbon_monoxide,",
+    'no2' : "nitrogen_dioxide,",
+    'so2' : "sulphur_dioxide,",
+    'o3' : "ozone,",
+    
+    #Europe:
+    'nh3' : "ammonia,",
+    'aldr' : "alder_pollen,",
+    'bp' : "birch_pollen,",
+    'gp' : "grass_pollen,",
+    'mp' : "mugwort_pollen,",
+    'ol' : "olive_pollen,",
+    'rw' : "ragweed_pollen,",
+
+    #European AQI:
+    'eu' : "european_aqi,",
+    'eu_pm10' : "european_aqi_pm10,",
+    'eu_pm2.5' : "european_aqi_pm2_5,",
+    'eu_no2' : "european_aqi_no2,",
+    'eu_so2' : "european_aqi_so2,",
+    'eu_o3' : "european_aqi_o3,",
+
+    #US AQI:
+    'us' : "us_aqi,",
+    'us_pm10' : "us_aqi_pm10,",
+    'us_pm2.5' : "us_aqi_pm2_5,",
+    'us_co' : "us_aqi_co,",
+    'us_no2' : "us_aqi_no2,",
+    'us_so2' : "us_aqi_so2,",
+    'us_o3' : "us_aqi_o3,",
+}
+
 dict_mar = {
     'hrly' : {
         'mn_ht' : "wave_height,",
@@ -127,45 +159,6 @@ dict_fld = {
     'v4_smls' : ["seamless_v4,", "GloFAS v4 Seamless"],
     'v4_fcst' : ["forecast_v4,", "GloFAS v4 Forecast"],
     'v4_consol' : ["consolidated_v4,", "GloFAS v4 Consolidated"],
-}
-
-dict_aq = {
-    'uv' : "uv_index,",
-    'uv_cs' : "uv_index_clear_sky,",
-    'du' : "dust,",
-    'aod' : "aerosol_optical_depth,",
-    'pm10' : "pm10,",
-    'pm2.5' : "pm2_5,",
-    'co' : "carbon_monoxide,",
-    'no2' : "nitrogen_dioxide,",
-    'so2' : "sulphur_dioxide,",
-    'o3' : "ozone,",
-    
-    #Europe:
-    'nh3' : "ammonia,",
-    'aldr' : "alder_pollen,",
-    'bp' : "birch_pollen,",
-    'gp' : "grass_pollen,",
-    'mp' : "mugwort_pollen,",
-    'ol' : "olive_pollen,",
-    'rw' : "ragweed_pollen,",
-
-    #European AQI:
-    'eu' : "european_aqi,",
-    'eu_pm10' : "european_aqi_pm10,",
-    'eu_pm2.5' : "european_aqi_pm2_5,",
-    'eu_no2' : "european_aqi_no2,",
-    'eu_so2' : "european_aqi_so2,",
-    'eu_o3' : "european_aqi_o3,",
-
-    #US AQI:
-    'us' : "us_aqi,",
-    'us_pm10' : "us_aqi_pm10,",
-    'us_pm2.5' : "us_aqi_pm2_5,",
-    'us_co' : "us_aqi_co,",
-    'us_no2' : "us_aqi_no2,",
-    'us_so2' : "us_aqi_so2,",
-    'us_o3' : "us_aqi_o3,",
 }
 
 def find_ip(loc):
