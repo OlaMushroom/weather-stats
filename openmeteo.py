@@ -15,12 +15,14 @@ st.title('WEATHER')
 param, loc = '', ''
 lat, long = 0, 0
 
-# session state:   
-def ss_chk(key: str, val):
+# session state:
+def ss_chk(param: str, var):
     for i in ss:
-        if ss[i]['key'] not in st.session_state: st.session_state[ss[i]['key']] = ss[i]['val']
-        elif ss[i]['key'] in st.session_state:
-            if val != ss[i]['val'] and val != st.session_state[key]: st.session_state[key] = val
+        key = ss[i]['key']
+        val = ss[i]['val']
+        if key not in st.session_state: st.session_state[key] = val
+        elif key in st.session_state:
+            if var != val and var != st.session_state[param]: st.session_state[param] = var
             else: pass
         else: pass
 
