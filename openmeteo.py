@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 # ... and some cool modules idk:
 #from streamlit_extras.stateful_button import button as stex_button # button that saves its own state
-from streamlit_toggle import st_toggle_switch as stex_switch # toggle switch
+from streamlit_extras.toggle_switch import st_toggle_switch as stex_switch # toggle switch
 from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range # date picker but with a range selection
 
 st.title('WEATHER')
