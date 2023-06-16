@@ -10,21 +10,30 @@ from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_r
 
 st.title('WEATHER')
 
+#st.session_state[''] #the magic line of code, just need to copy paste
 #'&timeformat=unixtime&timezone=auto' # default parameter
 
 param, loc = '', ''
 lat, long = 0, 0
 
-# session state:
+# session state (fk this sht):
 def ss_chk(param: str, var):
     for i in ss:
         key = ss[i]['key']
         val = ss[i]['val']
         if key not in st.session_state: st.session_state[key] = val
         elif key in st.session_state:
-            if var != val and var != st.session_state[param]: st.session_state[param] = var
+            if var != val and var != st.session_state[param]:
+                st.session_state[param] = var
+                return var
             else: pass
-        else: pass
+
+def lat_chk(lat):
+    lat = round(lat, 4)
+    ss_chk('lat', lat)
+def long_chk(long):
+    long = round(long, 4)
+    ss_chk('long', long)
 
 # date:
 def get_date(start, end, min, max, key):
@@ -44,13 +53,11 @@ in_opt = st.radio(
     format_func = lambda x: dict_loc.get(x),
     horizontal = True,
     label_visibility = 'collapsed',
-    #key = 'ss_in',
     help = ""
 )
+ss_chk('in', in_opt)
 
-ss_chk('input', in_opt)
-
-if in_opt == 'coord':
+if st.session_state['in'] == 'coord':
     lat = st.number_input(
         label = 'Latitude',
         min_value = -90.0,
@@ -58,9 +65,9 @@ if in_opt == 'coord':
         value = 0.0,
         step = 0.0001,
         format = '%.4f',
-        key = 'ss_lat',
         help = "Use negative value for South"
     )
+    lat_chk(lat)
 
     long = st.number_input(
         label = 'Longitude',
@@ -69,47 +76,40 @@ if in_opt == 'coord':
         value = 0.0,
         step = 0.0001,
         format = '%.4f',
-        key = 'ss_long',
         help = "Use negative value for West"
     )
+    long_chk(long)
 
-elif in_opt == 'name':
+elif st.session_state['in'] == 'name':
     in_loc = st.text_input(
         label = 'Location name or postal code:',
-        key = 'ss_name',
         help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
     )
+    ss_chk('loc', in_loc)
 
-    if in_loc != '':
+    if st.session_state['loc'] != '':
         loc = find_name(in_loc)
         lat = loc['latitude']
+        lat_chk(lat)
         long = loc['longitude']
+        long_chk(long)
 
-elif in_opt == 'ip':
+elif st.session_state['in'] == 'ip':
     in_loc = st.text_input(
         label = 'IP address:',
-        key = 'ss_ip',
-        help = "Type location's IP address."
+        help = 'If you want to get your current IP address, you can type "me" in the box.'
     )
-
-    if st.button(
-        label = 'Get your IP!',
-        key = 'ss_ip_get',
-        help = "Click here to get your current device's IP address."
-    ): in_loc = 'me'
-
-    if in_loc != '':
+    ss_chk('ip', in_loc)
+    
+    if st.session_state['ip'] != '':
         loc = find_ip(in_loc)
         lat = loc['lat']
+        lat_chk(lat)
         long = loc['long']
+        long_chk(long)
         st.write("The current IP address is:", loc['ip'])
 
-lat = round(lat, 4)
-long = round(long, 4)
-#if lat == -0.0: lat = 0.0
-#if long == -0.0: long = 0.0
-
-coord = 'latitude=' + str(lat) + '&longitude=' + str(long)
+coord = 'latitude=' + str(st.session_state['lat']) + '&longitude=' + str(st.session_state['long'])
 param += coord
 
 wx_opt = st.selectbox(

@@ -5,9 +5,29 @@ from geocoder import ip
 
 #IMPORTANT (and i hate this):
 ss = {
-    'in' :{
-        'key': 'input',
-        'val': 'i',
+    'input' : {
+        'key': 'in',
+        'val': '',
+    },
+
+    'latitude' : {
+        'key' : 'lat',
+        'val' : None,
+    },
+
+    'longitude' : {
+        'key' : 'long',
+        'val' : None,
+    },
+
+    'location' : {
+        'key' : 'loc',
+        'val' : '',
+    },
+
+    'IP' : {
+        'key' : 'ip',
+        'val' : '',
     },
 }
 
