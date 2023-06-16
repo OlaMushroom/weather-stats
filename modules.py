@@ -3,6 +3,16 @@
 from requests import get
 from geocoder import ip
 
+#IMPORTANT (and i hate this):
+ss = {
+    'in' :{
+        'key': 'input',
+        'val': 'i',
+    },
+}
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------------
+
 dict_loc = {
     'coord' : "Coordinates",
     'name' : "Name/Postal code",

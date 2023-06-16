@@ -1,27 +1,30 @@
-import streamlit as st
-#...and some cool modules idk:
-
-#button that saves its own state:
-#from streamlit_extras.stateful_button import button as stex_button
-
-#toggle switch:
-from streamlit_toggle import st_toggle_switch as stex_switch
-
-#date picker but with a range selection:
-from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range
-
+from modules import *
 from datetime import date
 from dateutil.relativedelta import relativedelta as rltvDelta
-from modules import *
+import pandas as pd
+import streamlit as st
+# ... and some cool modules idk:
+#from streamlit_extras.stateful_button import button as stex_button # button that saves its own state
+from streamlit_toggle import st_toggle_switch as stex_switch # toggle switch
+from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range # date picker but with a range selection
 
 st.title('WEATHER')
 
-#default parameter:
-#'&timeformat=unixtime&timezone=auto'
+#'&timeformat=unixtime&timezone=auto' # default parameter
 
 param, loc = '', ''
 lat, long = 0, 0
 
+# session state:   
+def ss_chk(key: str, val):
+    for i in ss:
+        if ss[i]['key'] not in st.session_state: st.session_state[ss[i]['key']] = ss[i]['val']
+        elif ss[i]['key'] in st.session_state:
+            if val != ss[i]['val'] and val != st.session_state[key]: st.session_state[key] = val
+            else: pass
+        else: pass
+
+# date:
 def get_date(start, end, min, max, key):
     return stex_dt_range(
         title = "Select a date range",
@@ -32,70 +35,72 @@ def get_date(start, end, min, max, key):
         key = key
     )
 
-with st.sidebar:
-    in_opt = st.radio(
-        label = 'Search type',
-        options = ('coord', 'name', 'ip'),
-        format_func = lambda x: dict_loc.get(x),
-        horizontal = True,
-        label_visibility = 'collapsed',
-        key = 'ss_in',
-        help = ""
+#with st.sidebar:
+in_opt = st.radio(
+    label = 'Search type',
+    options = ('coord', 'name', 'ip'),
+    format_func = lambda x: dict_loc.get(x),
+    horizontal = True,
+    label_visibility = 'collapsed',
+    #key = 'ss_in',
+    help = ""
+)
+
+ss_chk('input', in_opt)
+
+if in_opt == 'coord':
+    lat = st.number_input(
+        label = 'Latitude',
+        min_value = -90.0,
+        max_value = 90.0,
+        value = 0.0,
+        step = 0.0001,
+        format = '%.4f',
+        key = 'ss_lat',
+        help = "Use negative value for South"
     )
 
-    if in_opt == 'coord':
-        lat = st.number_input(
-            label = 'Latitude',
-            min_value = -90.0,
-            max_value = 90.0,
-            value = 0.0,
-            step = 0.0001,
-            format = '%.4f',
-            key = 'ss_lat',
-            help = "Use negative value for South"
-        )
+    long = st.number_input(
+        label = 'Longitude',
+        min_value = -180.0,
+        max_value = 180.0,
+        value = 0.0,
+        step = 0.0001,
+        format = '%.4f',
+        key = 'ss_long',
+        help = "Use negative value for West"
+    )
 
-        long = st.number_input(
-            label = 'Longitude',
-            min_value = -180.0,
-            max_value = 180.0,
-            value = 0.0,
-            step = 0.0001,
-            format = '%.4f',
-            key = 'ss_long',
-            help = "Use negative value for West"
-        )
+elif in_opt == 'name':
+    in_loc = st.text_input(
+        label = 'Location name or postal code:',
+        key = 'ss_name',
+        help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
+    )
 
-    elif in_opt == 'name':
-        in_loc = st.text_input(
-            label = 'Location name or postal code:',
-            key = 'ss_name',
-            help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
-        )
+    if in_loc != '':
+        loc = find_name(in_loc)
+        lat = loc['latitude']
+        long = loc['longitude']
 
-        if in_loc != '':
-            loc = find_name(in_loc)
-            lat = loc['latitude']
-            long = loc['longitude']
+elif in_opt == 'ip':
+    in_loc = st.text_input(
+        label = 'IP address:',
+        key = 'ss_ip',
+        help = "Type location's IP address."
+    )
 
-    elif in_opt == 'ip':
-        in_loc = st.text_input(
-            label = 'IP address:',
-            key = 'ss_ip',
-            help = "Type location's IP address."
-        )
+    if st.button(
+        label = 'Get your IP!',
+        key = 'ss_ip_get',
+        help = "Click here to get your current device's IP address."
+    ): in_loc = 'me'
 
-        if st.button(
-            label = 'Get your IP!',
-            #key = 'ss_ip_get',
-            help = "Click here to get your current device's IP address."
-        ): in_loc = 'me'
-
-        if in_loc != '':
-            loc = find_ip(in_loc)
-            lat = loc['lat']
-            long = loc['long']
-            st.write("The current IP address is:", loc['ip'])
+    if in_loc != '':
+        loc = find_ip(in_loc)
+        lat = loc['lat']
+        long = loc['long']
+        st.write("The current IP address is:", loc['ip'])
 
 lat = round(lat, 4)
 long = round(long, 4)
@@ -164,7 +169,8 @@ if wx_opt == 'mar':
         help = ""
     )
 
-if wx_opt == 'fld':    
+if wx_opt == 'fld':
+    index = []
     dly = '&daily='
     dly_opt = st.multiselect(
         label = 'Daily Weather Variables',
@@ -175,7 +181,9 @@ if wx_opt == 'fld':
         key = None,
         help = ""
     )
-    for opt in dly_opt: dly += dict_fld[opt][0]
+    for opt in dly_opt:
+        index.append(dict_fld[opt][1])
+        dly += dict_fld[opt][0]
     param += dly
     
     mdl = '&models='
@@ -238,8 +246,18 @@ if wx_opt == 'fld':
     
     param += ('&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d'))
     st.write("Date:", dt) #debug
+
+    if st.button(
+        label = 'Get weather data',
+        key = 'ss_fld_data',
+        help = ""
+    ):
+        data = flood(param)
+        pd.DataFrame(data["daily"])
+        st.write(data)
     
 #debug:
 st.sidebar.write("WX type:", wx_opt)
 st.sidebar.write('Parameters:', param)
 st.sidebar.write('Location:', loc)
+st.sidebar.write(st.session_state)
