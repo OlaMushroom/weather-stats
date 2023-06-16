@@ -172,7 +172,7 @@ if wx_opt == 'mar':
     )
 
 if wx_opt == 'fld':
-    index = []
+    index, list = [], []
     dly = '&daily='
     dly_opt = st.multiselect(
         label = 'Daily Weather Variables',
@@ -185,7 +185,8 @@ if wx_opt == 'fld':
     )
     for opt in dly_opt:
         index.append(dict_fld[opt][1])
-        dly += dict_fld[opt][0]
+        list.append(dict_fld[opt][0])
+        dly += dict_fld[opt][0] + ','
     param += dly
     
     mdl = '&models='
@@ -199,7 +200,7 @@ if wx_opt == 'fld':
         key = "ss_fld_mdl"
     )
 
-    mdl_consol = False #placeholder variable to prevent unbound because i am stupid
+    mdl_consol = False # placeholder variable to prevent unbound because i am stupid
 
     if fld_mdl == True:
         mdl_opt = st.multiselect(
@@ -212,10 +213,10 @@ if wx_opt == 'fld':
             help = ""
         )
         for opt in mdl_opt: mdl += dict_fld[opt][0]
-        param += mdl
+        param += mdl + ','
 
         if all([
-            not not mdl_opt, #lmao not not
+            not not mdl_opt, # lmao not not
             'v3_smls' not in mdl_opt,
             'v3_fcst' not in mdl_opt, 
         ]): mdl_consol = True
@@ -247,18 +248,21 @@ if wx_opt == 'fld':
     )
     
     param += ('&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d'))
-    st.write("Date:", dt) #debug
+    st.write("Date:", dt) # debug
 
     if st.button(
         label = 'Get weather data',
         key = 'ss_fld_data',
         help = ""
     ):
-        data = flood(param)
-        pd.DataFrame(data["daily"])
-        st.write(data)
+        data = flood(param)['daily']
+        frame = []
+        for i in data['time']: frame = pd.DataFrame({'Time': data['time']})
+        for opt in dly_opt: frame[dict_fld[opt][1]] = pd.Series(data[dict_fld[opt][0]])
+        st.write(frame)
+        st.sidebar.write(data)
     
-#debug:
+# debug:
 st.sidebar.write("WX type:", wx_opt)
 st.sidebar.write('Parameters:', param)
 st.sidebar.write('Location:', loc)
