@@ -1,22 +1,25 @@
+"""PLACEHOLDER"""
+
+# Import modules:
 from modules import *
 from datetime import date
 from dateutil.relativedelta import relativedelta as rltvDelta
 import pandas as pd
 import streamlit as st
 # ... and some cool modules idk:
-#from streamlit_extras.stateful_button import button as stex_button # button that saves its own state
-from streamlit_extras.toggle_switch import st_toggle_switch as stex_switch # toggle switch
-from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range # date picker but with a range selection
+from streamlit_extras.stateful_button import button as stex_button # Button that saves its own state
+from streamlit_extras.toggle_switch import st_toggle_switch as stex_switch # Toggle switch
+from streamlit_extras.mandatory_date_range import date_range_picker as stex_dt_range # Date picker but with range selection
 
 st.title('WEATHER')
 
-#st.session_state[''] #the magic line of code, just need to copy paste
-#'&timeformat=unixtime&timezone=auto' # default parameter
+#st.session_state[''] # The magic line of code, just need to copy paste
+#'&timeformat=unixtime&timezone=auto' # Temp default parameter
 
 param, loc = '', ''
 lat, long = 0, 0
 
-# session state (fk this sht):
+# Session state (fk this sht):
 def ss_chk(param: str, var):
     for i in ss:
         key = ss[i]['key']
@@ -35,7 +38,7 @@ def long_chk(long):
     long = round(long, 4)
     ss_chk('long', long)
 
-# date:
+# Date range input:
 def get_date(start, end, min, max, key):
     return stex_dt_range(
         title = "Select a date range",
@@ -46,6 +49,7 @@ def get_date(start, end, min, max, key):
         key = key
     )
 
+# Location input:
 #with st.sidebar:
 in_opt = st.radio(
     label = 'Search type',
@@ -57,7 +61,7 @@ in_opt = st.radio(
 )
 ss_chk('in', in_opt)
 
-if st.session_state['in'] == 'coord':
+if st.session_state['in'] == 'coord': # Coordinates
     lat = st.number_input(
         label = 'Latitude',
         min_value = -90.0,
@@ -80,7 +84,7 @@ if st.session_state['in'] == 'coord':
     )
     long_chk(long)
 
-elif st.session_state['in'] == 'name':
+elif st.session_state['in'] == 'name': # Name/Postal Code
     in_loc = st.text_input(
         label = 'Location name or postal code:',
         help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
@@ -94,7 +98,7 @@ elif st.session_state['in'] == 'name':
         long = loc['longitude']
         long_chk(long)
 
-elif st.session_state['in'] == 'ip':
+elif st.session_state['in'] == 'ip': # IP address
     in_loc = st.text_input(
         label = 'IP address:',
         help = 'If you want to get your current IP address, you can type "me" in the box.'
@@ -112,6 +116,7 @@ elif st.session_state['in'] == 'ip':
 coord = 'latitude=' + str(st.session_state['lat']) + '&longitude=' + str(st.session_state['long'])
 param += coord
 
+# Weather type selection:
 wx_opt = st.selectbox(
     label = 'Weather type',
     options = (None, 'fcst', 'ens', 'hist', 'clim', 'aq', 'mar', 'fld'),
@@ -120,48 +125,7 @@ wx_opt = st.selectbox(
     help = ""
 )
 
-def pref():
-    with st.expander(
-        label = 'Preferences',
-        expanded = True
-    ):
-        temp_unit = st.radio(
-            label = 'Temperature Unit',
-            options = ('C', 'F'),
-            format_func = lambda x: dict_unit.get(x),
-            horizontal = True,
-            key = 'ss_temp_unit',
-            help = ""
-        )
-
-        prec_unit = st.radio(
-            label = 'Precipitation Unit',
-            options = ('mm', 'in'),
-            format_func = lambda x: dict_unit.get(x),
-            horizontal = True,
-            key = 'ss_prec_unit',
-            help = ""
-        )
-
-        ws_unit = st.radio(
-            label = 'Wind Speed Unit',
-            options = ('kmh', 'ms', 'mph', 'kn'),
-            format_func = lambda x: dict_unit.get(x),
-            horizontal = True,
-            key = 'ss_ws_unit',
-            help = ""
-        )
-
-if any([
-    wx_opt == 'fcst',
-    wx_opt == 'ens',
-    wx_opt == 'hist',
-    wx_opt == 'clim'
-]):
-    param += '&timezone=auto'
-    pref()
-
-if wx_opt == 'mar':
+if wx_opt == 'mar': # WX type: Marine
     len_unit = st.radio(
         label = 'Length Unit',
         options = ('m', 'imp'),
@@ -171,7 +135,7 @@ if wx_opt == 'mar':
         help = ""
     )
 
-if wx_opt == 'fld':
+if wx_opt == 'fld': # WX type: Flood
     index, list = [], []
     dly = '&daily='
     dly_opt = st.multiselect(
@@ -263,7 +227,52 @@ if wx_opt == 'fld':
         st.sidebar.write(data)
     
 # debug:
-st.sidebar.write("WX type:", wx_opt)
 st.sidebar.write('Parameters:', param)
 st.sidebar.write('Location:', loc)
 st.sidebar.write(st.session_state)
+
+#-----------------TEMP CHUNK OF CODE-----------------:
+'''
+
+def pref():
+    with st.expander(
+        label = 'Preferences',
+        expanded = True
+    ):
+        temp_unit = st.radio(
+            label = 'Temperature Unit',
+            options = ('C', 'F'),
+            format_func = lambda x: dict_unit.get(x),
+            horizontal = True,
+            key = 'ss_temp_unit',
+            help = ""
+        )
+
+        prec_unit = st.radio(
+            label = 'Precipitation Unit',
+            options = ('mm', 'in'),
+            format_func = lambda x: dict_unit.get(x),
+            horizontal = True,
+            key = 'ss_prec_unit',
+            help = ""
+        )
+
+        ws_unit = st.radio(
+            label = 'Wind Speed Unit',
+            options = ('kmh', 'ms', 'mph', 'kn'),
+            format_func = lambda x: dict_unit.get(x),
+            horizontal = True,
+            key = 'ss_ws_unit',
+            help = ""
+        )
+
+if any([
+    wx_opt == 'fcst',
+    wx_opt == 'ens',
+    wx_opt == 'hist',
+    wx_opt == 'clim'
+]):
+    param += '&timezone=auto'
+    pref()
+
+'''

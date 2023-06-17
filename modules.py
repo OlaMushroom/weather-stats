@@ -1,5 +1,6 @@
-"""splitted code"""
+"""SPLITTED CHUNK OF CODE (That is not using Streamlit)"""
 
+# Import modules:
 from requests import get
 from geocoder import ip
 
@@ -33,12 +34,14 @@ ss = {
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 
+# Location input types:
 dict_loc = {
     'coord' : "Coordinates",
     'name' : "Name/Postal code",
     'ip' : "IP address",
 }
 
+# Unit types:
 dict_unit = {
     'C' : "Celsius (°C)",
     'F' : "Fahrenheit (°F)",
@@ -52,6 +55,7 @@ dict_unit = {
     'kn' : "Knots",
 }
 
+# Weather types:
 dict_wx = {
     None : '---',
     'fcst' : "Forecast",
@@ -63,6 +67,7 @@ dict_wx = {
     'fld' : "Flood",
 }
 
+# WX type: Climate:
 dict_clim = {
     'temp_mn' : "temperature_2m_mean",
     'temp_max' : "temperature_2m_max",
@@ -89,7 +94,7 @@ dict_clim = {
     'vpd' : "vapor_pressure_deficit_mean",
     'et0' : "et0_fao_evapotranspiration_sum",
 
-    #models:
+    # Models:
     'EC' : "EC_Earth3P_HR",
     'MRI' : "MRI_AGCM3_2_S",
     'MIROC' : "NICAM16_8S",
@@ -99,6 +104,7 @@ dict_clim = {
     'CAS' : "FGOALS_f3_H",
 }
 
+# WX type: Air Quality:
 dict_aq = {
     'uv' : "uv_index",
     'uv_cs' : "uv_index_clear_sky",
@@ -111,7 +117,7 @@ dict_aq = {
     'so2' : "sulphur_dioxide",
     'o3' : "ozone",
     
-    #Europe:
+    # Europe:
     'nh3' : "ammonia",
     'aldr' : "alder_pollen",
     'bp' : "birch_pollen",
@@ -120,7 +126,7 @@ dict_aq = {
     'ol' : "olive_pollen",
     'rw' : "ragweed_pollen",
 
-    #European AQI:
+    # European AQI:
     'eu' : "european_aqi",
     'eu_pm10' : "european_aqi_pm10",
     'eu_pm2.5' : "european_aqi_pm2_5",
@@ -128,7 +134,7 @@ dict_aq = {
     'eu_so2' : "european_aqi_so2",
     'eu_o3' : "european_aqi_o3",
 
-    #US AQI:
+    # US AQI:
     'us' : "us_aqi",
     'us_pm10' : "us_aqi_pm10",
     'us_pm2.5' : "us_aqi_pm2_5",
@@ -138,7 +144,9 @@ dict_aq = {
     'us_o3' : "us_aqi_o3",
 }
 
+# WX Type: Marine:
 dict_mar = {
+    # Hourly variables:
     'hrly' : {
         'mn_ht' : "wave_height",
         'mn_dir' : "wave_direction",
@@ -155,6 +163,7 @@ dict_mar = {
         'swll_prd_pk' : "swell_wave_peak_period",
     },
 
+    # Daily variables:
     'dly' : {
         'mn_ht' : "wave_height_max",
         'mn_dir' : "wave_direction_dominant",
@@ -172,6 +181,7 @@ dict_mar = {
     },
 }
 
+# WX Type: Flood
 dict_fld = {
     'dc' : ["river_discharge", "River Discharge"],
     'mn' : ["river_discharge_mean", "River Discharge Mean"],
@@ -182,7 +192,7 @@ dict_fld = {
     'p75' : ["river_discharge_p75", "River Discharge 75ᵗʰ Percentile"],
     'ens' : "&ensemble=true",
 
-    #models:
+    # Models:
     'v3_smls' : ["seamless_v3", "GloFAS v3 Seamless"],
     'v3_fcst' : ["forecast_v3", "GloFAS v3 Forecast"],
     'v3_consol' : ["consolidated_v3", "GloFAS v3 Consolidated"],
@@ -191,6 +201,7 @@ dict_fld = {
     'v4_consol' : ["consolidated_v4", "GloFAS v4 Consolidated"],
 }
 
+# IP-based location search using Geocoder:
 def find_ip(loc):
     g = ip(loc)
     return {
@@ -204,16 +215,16 @@ def find_ip(loc):
 
 def find_name(loc): return get('https://geocoding-api.open-meteo.com/v1/search?name=' + loc + '&count=1&language=en&format=json').json()['results'][0]
 
-def forecast(param, model): return get('https://api.open-meteo.com/v1/' + model + param).json()
+#def forecast(param, model): return get('https://api.open-meteo.com/v1/' + model + param).json()
 
-def ensemble(param): return get('https://ensemble-api.open-meteo.com/v1/ensemble' + param).json()
+#def ensemble(param): return get('https://ensemble-api.open-meteo.com/v1/ensemble' + param).json()
 
-def historical(param): return get('https://archive-api.open-meteo.com/v1/archive' + param).json()
+#def historical(param): return get('https://archive-api.open-meteo.com/v1/archive' + param).json()
 
-def climate(param): return get('https://climate-api.open-meteo.com/v1/climate' + param).json()
+#def climate(param): return get('https://climate-api.open-meteo.com/v1/climate' + param).json()
 
-def aq(param): return get('https://air-quality-api.open-meteo.com/v1/air-quality?' + param).json()
+#def aq(param): return get('https://air-quality-api.open-meteo.com/v1/air-quality?' + param).json()
 
-def marine(param): return get('https://marine-api.open-meteo.com/v1/marine?' + param).json()
+def marine(param): return get('https://marine-api.open-meteo.com/v1/marine?' + param).json() # Return "WX type: Marine" data
 
-def flood(param): return get('https://flood-api.open-meteo.com/v1/flood?' + param).json()
+def flood(param): return get('https://flood-api.open-meteo.com/v1/flood?' + param).json() # Return "WX type: Flood" data
