@@ -212,7 +212,7 @@ if wx_opt == 'fld': # WX type: Flood
     )
     
     param += ('&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d'))
-    st.write("Date:", dt) # debug
+    st.sidebar.write("Date:", dt) # debug
 
     if st.button(
         label = 'Get weather data',
@@ -229,4 +229,4 @@ if wx_opt == 'fld': # WX type: Flood
 # debug:
 st.sidebar.write('Parameters:', param)
 st.sidebar.write('Location:', loc)
-st.sidebar.write(st.session_state)
+st.sidebar.write('Session State:', st.session_state)
