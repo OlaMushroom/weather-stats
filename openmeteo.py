@@ -228,9 +228,15 @@ if wx_opt == 'fld': # WX type: Flood
     ):
         data = flood(param)['daily']
         frame = []
-        for i in data['time']: frame = pd.DataFrame({'Time': data['time']})
-        for opt in dly_opt: frame[dict_fld[opt][1]] = pd.Series(data[dict_fld[opt][0]])
-        st.write(frame)
+        for i in data['time']: frame = pd.DataFrame({'Time (YYYY-MM-DD)': data['time']})
+        for opt in dly_opt: frame["%s (m³/s)" % dict_fld[opt][1]] = pd.Series(data[dict_fld[opt][0]])
+        st.dataframe(
+            data = frame,
+            hide_index = False,
+            column_config = {
+                '_index' : "Index",
+            },        
+        )
         st.sidebar.write(data)
     
 # debug:
