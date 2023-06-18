@@ -243,3 +243,49 @@ def find_name(loc): return get('https://geocoding-api.open-meteo.com/v1/search?n
 def marine(param): return get('https://marine-api.open-meteo.com/v1/marine?' + param).json() # Return "WX type: Marine" data
 
 def flood(param): return get('https://flood-api.open-meteo.com/v1/flood?' + param).json() # Return "WX type: Flood" data
+
+#-----------------TEMP CHUNK OF CODE-----------------:
+'''
+
+def pref():
+    with st.expander(
+        label = 'Preferences',
+        expanded = True
+    ):
+        temp_unit = st.radio(
+            label = 'Temperature Unit',
+            options = ('C', 'F'),
+            format_func = lambda x: dict_unit.get(x),
+            horizontal = True,
+            key = 'ss_temp_unit',
+            help = ""
+        )
+
+        prec_unit = st.radio(
+            label = 'Precipitation Unit',
+            options = ('mm', 'in'),
+            format_func = lambda x: dict_unit.get(x),
+            horizontal = True,
+            key = 'ss_prec_unit',
+            help = ""
+        )
+
+        ws_unit = st.radio(
+            label = 'Wind Speed Unit',
+            options = ('kmh', 'ms', 'mph', 'kn'),
+            format_func = lambda x: dict_unit.get(x),
+            horizontal = True,
+            key = 'ss_ws_unit',
+            help = ""
+        )
+
+if any([
+    wx_opt == 'fcst',
+    wx_opt == 'ens',
+    wx_opt == 'hist',
+    wx_opt == 'clim'
+]):
+    param += '&timezone=auto'
+    pref()
+
+'''
