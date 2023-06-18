@@ -1,4 +1,4 @@
-"""PLACEHOLDER"""
+"""IMPORTANT: Prefix with an underscore anything that the user shouldn't see."""
 
 # Import modules:
 from modules import *
