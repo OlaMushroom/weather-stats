@@ -40,78 +40,86 @@ def long_chk(long):
 
 # Date range input:
 def get_date(start, end, min, max, key):
-    return stex_dt_range(
-        title = "Select a date range",
-        default_start = start,
-        default_end = end,
-        min_date = min,
-        max_date = max,
-        key = key
-    )
+    with st.sidebar:
+        return stex_dt_range(
+            title = "Select a date range",
+            default_start = start,
+            default_end = end,
+            min_date = min,
+            max_date = max,
+            key = key
+        )
 
 # Location input:
-#with st.sidebar:
-in_opt = st.radio(
-    label = 'Search type',
-    options = ('coord', 'name', 'ip'),
-    format_func = lambda x: dict_loc.get(x),
-    horizontal = True,
-    label_visibility = 'collapsed',
-    help = ""
-)
-ss_chk('in', in_opt)
-
-if st.session_state['in'] == 'coord': # Coordinates
-    lat = st.number_input(
-        label = 'Latitude',
-        min_value = -90.0,
-        max_value = 90.0,
-        value = 0.0,
-        step = 0.0001,
-        format = '%.4f',
-        help = "Use negative value for South"
+with st.sidebar:
+    in_opt = st.radio(
+        label = 'Search type',
+        options = ('coord', 'name', 'ip'),
+        format_func = lambda x: dict_loc.get(x),
+        horizontal = True,
+        label_visibility = 'collapsed',
+        help = ""
     )
-    lat_chk(lat)
+    ss_chk('in', in_opt)
 
-    long = st.number_input(
-        label = 'Longitude',
-        min_value = -180.0,
-        max_value = 180.0,
-        value = 0.0,
-        step = 0.0001,
-        format = '%.4f',
-        help = "Use negative value for West"
-    )
-    long_chk(long)
+    if st.session_state['in'] == 'coord': # Coordinates
+        col_lat, col_long = st.columns(
+            spec = 2,
+            gap = 'small'
+        )
 
-elif st.session_state['in'] == 'name': # Name/Postal Code
-    in_loc = st.text_input(
-        label = 'Location name or postal code:',
-        help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
-    )
-    ss_chk('loc', in_loc)
-
-    if st.session_state['loc'] != '':
-        loc = find_name(in_loc)
-        lat = loc['latitude']
+        with col_lat:
+            lat = st.number_input(
+                label = 'Latitude',
+                min_value = -90.0,
+                max_value = 90.0,
+                value = 0.0,
+                step = 0.0001,
+                format = '%.4f',
+                help = "Use negative value for South"
+            )
         lat_chk(lat)
-        long = loc['longitude']
+
+        with col_long:
+            long = st.number_input(
+                label = 'Longitude',
+                min_value = -180.0,
+                max_value = 180.0,
+                value = 0.0,
+                step = 0.0001,
+                format = '%.4f',
+                help = "Use negative value for West"
+            )
         long_chk(long)
 
-elif st.session_state['in'] == 'ip': # IP address
-    in_loc = st.text_input(
-        label = 'IP address:',
-        help = 'If you want to get your current IP address, you can type "me" in the box.'
-    )
-    ss_chk('ip', in_loc)
-    
-    if st.session_state['ip'] != '':
-        loc = find_ip(in_loc)
-        lat = loc['lat']
-        lat_chk(lat)
-        long = loc['long']
-        long_chk(long)
-        st.write("The current IP address is:", loc['ip'])
+    elif st.session_state['in'] == 'name': # Name/Postal Code
+        in_loc = st.text_input(
+            label = 'Location name or postal code:',
+            help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
+        )
+        ss_chk('loc', in_loc)
+
+        if st.session_state['loc'] != '':
+            loc = find_name(in_loc)
+            lat = loc['latitude']
+            lat_chk(lat)
+            long = loc['longitude']
+            long_chk(long)
+
+    elif st.session_state['in'] == 'ip': # IP address
+        in_loc = st.text_input(
+            label = 'IP address:',
+            help = 'If you want to get your current IP address, you can type "me" in the box.'
+        )
+        ss_chk('ip', in_loc)
+        
+        if st.session_state['ip'] != '':
+            loc = find_ip(in_loc)
+            lat = loc['lat']
+            lat_chk(lat)
+            long = loc['long']
+            long_chk(long)
+            st.write("The current IP address is:", loc['ip'])
 
 coord = 'latitude=' + str(st.session_state['lat']) + '&longitude=' + str(st.session_state['long'])
 param += coord
