@@ -55,7 +55,7 @@ dict_unit = {
     'kn' : "Knots",
 }
 
-# Weather types:
+# Weather (WX) types:
 dict_wx = {
     None : '---',
     'fcst' : "Forecast",
@@ -65,6 +65,21 @@ dict_wx = {
     'aq' : "Air Quality",
     'mar' : "Marine",
     'fld' : "Flood",
+}
+
+# WX type: Forecast:
+dict_fcst = {
+    
+}
+
+# WX type: Ensemble:
+dict_ens = {
+
+}
+
+# WX type: Historical:
+dict_hist = {
+
 }
 
 # WX type: Climate:
@@ -144,7 +159,7 @@ dict_aq = {
     'us_o3' : "us_aqi_o3",
 }
 
-# WX Type: Marine:
+# WX type: Marine:
 dict_mar = {
     # Hourly variables:
     'hrly' : {
@@ -181,7 +196,7 @@ dict_mar = {
     },
 }
 
-# WX Type: Flood
+# WX type: Flood:
 dict_fld = {
     'dc' : ["river_discharge", "River Discharge"],
     'mn' : ["river_discharge_mean", "River Discharge Mean"],
