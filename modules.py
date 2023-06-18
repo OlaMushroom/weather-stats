@@ -36,6 +36,7 @@ ss = {
 
 # Location input types:
 dict_loc = {
+    None : '---',
     'coord' : "Coordinates",
     'name' : "Name/Postal code",
     'ip' : "IP address",

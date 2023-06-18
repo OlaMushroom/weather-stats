@@ -3,7 +3,7 @@
 # Import modules:
 from modules import *
 from datetime import date
-from dateutil.relativedelta import relativedelta as rltvDelta
+from dateutil.relativedelta import relativedelta as rltvD
 import pandas as pd
 import streamlit as st
 # ... and some cool modules idk:
@@ -31,13 +31,6 @@ def ss_chk(param: str, var):
                 return var
             else: pass
 
-def lat_chk(lat):
-    lat = round(lat, 4)
-    ss_chk('lat', lat)
-def long_chk(long):
-    long = round(long, 4)
-    ss_chk('long', long)
-
 # Date range input:
 def get_date(start, end, min, max, key):
     with st.sidebar:
@@ -54,7 +47,7 @@ def get_date(start, end, min, max, key):
 with st.sidebar:
     in_opt = st.radio(
         label = 'Search type',
-        options = ('coord', 'name', 'ip'),
+        options = (None, 'coord', 'name', 'ip'),
         format_func = lambda x: dict_loc.get(x),
         horizontal = True,
         label_visibility = 'collapsed',
@@ -76,9 +69,11 @@ with st.sidebar:
                 value = 0.0,
                 step = 0.0001,
                 format = '%.4f',
+                key = 'ss_lat',
                 help = "Use negative value for South"
             )
-        lat_chk(lat)
+            lat = round(lat, 4)
+            ss_chk('lat', lat)
 
         with col_long:
             long = st.number_input(
@@ -88,13 +83,16 @@ with st.sidebar:
                 value = 0.0,
                 step = 0.0001,
                 format = '%.4f',
+                key = 'ss_long',
                 help = "Use negative value for West"
             )
-        long_chk(long)
+        long = round(long, 4)
+        ss_chk('long', long)
 
     elif st.session_state['in'] == 'name': # Name/Postal Code
         in_loc = st.text_input(
             label = 'Location name or postal code:',
+            key = 'ss_name',
             help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
         )
         ss_chk('loc', in_loc)
@@ -102,13 +100,14 @@ with st.sidebar:
         if st.session_state['loc'] != '':
             loc = find_name(in_loc)
             lat = loc['latitude']
-            lat_chk(lat)
+            ss_chk('lat', lat)
             long = loc['longitude']
-            long_chk(long)
+            ss_chk('long', long)
 
     elif st.session_state['in'] == 'ip': # IP address
         in_loc = st.text_input(
             label = 'IP address:',
+            key = 'ss_ip',
             help = 'If you want to get your current IP address, you can type "me" in the box.'
         )
         ss_chk('ip', in_loc)
@@ -116,9 +115,9 @@ with st.sidebar:
         if st.session_state['ip'] != '':
             loc = find_ip(in_loc)
             lat = loc['lat']
-            lat_chk(lat)
+            ss_chk('lat', lat)
             long = loc['long']
-            long_chk(long)
+            ss_chk('long', long)
             st.write("The current IP address is:", loc['ip'])
 
 coord = 'latitude=' + str(st.session_state['lat']) + '&longitude=' + str(st.session_state['long'])
@@ -206,7 +205,7 @@ if wx_opt == 'fld': # WX type: Flood
     if ens == True: param += dict_fld['ens']
     elif ens == False: param.replace(dict_fld['ens'], '')
 
-    dt_max = date.today() + rltvDelta(months = +7, weeks= +2)
+    dt_max = date.today() + rltvD(months = +7, weeks= +2)
     dt_start, dt_end = date.today(), date.today()
     if mdl_consol == True:
         dt_max = date(2022, 7, 31)
