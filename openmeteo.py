@@ -4,7 +4,10 @@
 from modules import *
 from datetime import date
 from dateutil.relativedelta import relativedelta as rltvD
-import pandas as pd
+#import numpy as np
+#import pandas as pd
+#import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 # ... and some cool modules idk:
 from streamlit_extras.stateful_button import button as stex_button # Button that saves its own state
@@ -221,23 +224,28 @@ if wx_opt == 'fld': # WX type: Flood
     param += ('&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d'))
     st.sidebar.write("Date:", dt) # debug
 
-    if st.button(
+    if stex_button(
         label = 'Get weather data',
         key = 'ss_fld_data',
         help = ""
     ):
         data = flood(param)['daily']
-        frame = []
-        for i in data['time']: frame = pd.DataFrame({'Time (YYYY-MM-DD)': data['time']})
-        for opt in dly_opt: frame["%s (m³/s)" % dict_fld[opt][1]] = pd.Series(data[dict_fld[opt][0]])
-        st.dataframe(
-            data = frame,
-            hide_index = False,
-            column_config = {
-                '_index' : "Index",
-            },        
+        fig = go.Figure()
+        for opt in dly_opt:
+            fig.add_trace(go.Scatter(
+                x = data['time'],
+                y = data[dict_fld[opt][0]],
+                name = dict_fld[opt][1],
+                mode = 'lines+markers'
+            ))
+        fig.update_layout(
+            title='',
+            xaxis_title='Date',
+            yaxis_title='m³/s'
         )
-        st.sidebar.write(data)
+        st.plotly_chart(figure_or_data = fig)
+
+        st.sidebar.write('Data', data)
     
 # debug:
 st.sidebar.write('Parameters:', param)
