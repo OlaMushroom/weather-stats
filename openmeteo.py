@@ -220,28 +220,50 @@ if wx_opt == 'fld': # WX type: Flood
     param += ('&start_date=' + dt[0].strftime('%Y-%m-%d') + '&end_date=' + dt[1].strftime('%Y-%m-%d'))
     st.sidebar.write("Date:", dt) # debug
 
-    if stex_button(
-        label = 'Get weather data',
-        key = 'ss_fld_data',
-        help = ""
-    ):
-        data = flood(param)['daily']
-        fig = go.Figure()
-        for opt in dly_opt:
-            fig.add_trace(go.Scatter(
-                x = data['time'],
-                y = data[dict_fld[opt][0]],
-                name = dict_fld[opt][1],
-                mode = 'lines+markers'
-            ))
-        fig.update_layout(
-            title='',
-            xaxis_title='Date',
-            yaxis_title='m³/s'
-        )
-        st.plotly_chart(figure_or_data = fig)
+    data = flood(param)['daily']
 
-        st.sidebar.write('Data', data)
+    df = {}
+    df['Time (YYYY-MM-DD)'] = data['time']
+    for opt in dly_opt: df['%s (m³/s)' % dict_fld[opt][1]] = data[dict_fld[opt][0]]
+    
+    fig = go.Figure()
+    for opt in dly_opt:
+        fig.add_trace(go.Scatter(
+            x = data['time'],
+            y = data[dict_fld[opt][0]],
+            name = dict_fld[opt][1],
+            mode = 'lines+markers'
+        ))
+    fig.update_layout(
+        title='',
+        xaxis_title='Date',
+        yaxis_title='m³/s'
+    )
+
+    with st.expander(
+        label = 'Table',
+        expanded = False
+    ):
+        st.dataframe(
+            data = df,
+            use_container_width = True,
+            hide_index = True
+        )
+
+    with st.expander(
+        label = 'Chart',
+        expanded = True
+    ):
+        st.plotly_chart(
+            figure_or_data = fig,
+            use_container_width = True,
+            theme = 'streamlit',
+            sharing = 'streamlit'
+        )
+
+    # debug:
+    #st.sidebar.write('Dataframe', df)
+    #st.sidebar.write('Data', data)
     
 # debug:
 st.sidebar.write('Parameters:', param)
