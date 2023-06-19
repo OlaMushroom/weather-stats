@@ -146,7 +146,6 @@ if wx_opt == 'mar': # WX type: Marine
     )
 
 if wx_opt == 'fld': # WX type: Flood
-    index, list = [], []
     dly = '&daily='
     dly_opt = st.multiselect(
         label = 'Daily Weather Variables',
@@ -157,10 +156,7 @@ if wx_opt == 'fld': # WX type: Flood
         key = None,
         help = ""
     )
-    for opt in dly_opt:
-        index.append(dict_fld[opt][1])
-        list.append(dict_fld[opt][0])
-        dly += dict_fld[opt][0] + ','
+    for opt in dly_opt: dly += dict_fld[opt][0] + ','
     param += dly
     
     mdl = '&models='
