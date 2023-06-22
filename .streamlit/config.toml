@@ -48,7 +48,7 @@ showErrorDetails = false
 # "viewer" : Hide the developer options.
 # "minimal" : Show only options set externally (e.g. through Streamlit Community Cloud) or through st.set_page_config. If there are no options left, hide the menu.
 # Default: "auto"
-toolbarMode = "developer"
+toolbarMode = "auto"
 
 
 [runner]
@@ -75,7 +75,7 @@ fastReruns = true
 
 # Raise an exception after adding unserializable data to Session State. Some execution environments may require serializing all data in Session State, so it may be useful to detect incompatibility during development, or when the execution environment will stop supporting it in the future.
 # Default: false
-enforceSerializableSessionState = true
+enforceSerializableSessionState = false
 
 
 [server]
@@ -135,7 +135,7 @@ enableWebsocketCompression = true
 
 # Enable serving files from a `static` directory in the running app's directory.
 # Default: false
-enableStaticServing = true
+enableStaticServing = false
 
 # Server certificate file for connecting via HTTPS. Must be set at the same time as "server.sslKeyFile".
 # ['DO NOT USE THIS OPTION IN A PRODUCTION ENVIRONMENT. It has not gone through security audits or performance tests. For the production environment, we recommend performing SSL termination by the load balancer or the reverse proxy.']

@@ -4,7 +4,7 @@
 from requests import get
 from geocoder import ip
 
-#IMPORTANT (and i hate this):
+# IMPORTANT (and i hate this):
 ss = {
     'input' : {
         'key': 'in',
@@ -44,16 +44,27 @@ dict_loc = {
 
 # Unit types:
 dict_unit = {
-    'C' : "Celsius (°C)",
-    'F' : "Fahrenheit (°F)",
-    'm' : "Metric",
-    'imp' : "Imperial",
-    'mm' : "Millimeter",
-    'in' : "Inch",
-    'kmh' : "Km/h",
-    'ms' : "m/s",
-    'mph' : "mi/h (Mph)",
-    'kn' : "Knots",
+    'temp' : {
+        'C' : ["celcius", "Celsius (°C)"],
+        'F' : ["fahrenheit", "Fahrenheit (°F)"],
+    },
+
+    'prec' : {
+        'mm' : ["millimeter", "Millimeter"],
+        'in' : ["inch", "Inch"],
+    },
+
+    'ws' : {
+        'kmh' : ["kmh", "Km/h"],
+        'ms' : ["ms", "m/s"],
+        'mph' : ["mph", "mi/h (Mph)"],
+        'kn' : ["kn", "Knots"],
+    },
+
+    'mar' : {
+        'm' : ["metric", "Metric"],
+        'imp' : ["imperial", "Imperial"],
+    },
 }
 
 # Weather (WX) types:
@@ -199,23 +210,19 @@ dict_mar = {
 
 # WX type: Flood:
 dict_fld = {
-    'dc' : ["river_discharge", "River Discharge"],
-    'mn' : ["river_discharge_mean", "River Discharge Mean"],
-    'med' : ["river_discharge_median", "River Discharge Median"],
-    'max' : ["river_discharge_max", "River Discharge Max"],
-    'min' : ["river_discharge_min", "River Discharge Min"],
-    'p25' : ["river_discharge_p25", "River Discharge 25ᵗʰ Percentile"],
-    'p75' : ["river_discharge_p75", "River Discharge 75ᵗʰ Percentile"],
-    'ens' : "&ensemble=true",
-
-    # Models:
-    'v3_smls' : ["seamless_v3", "GloFAS v3 Seamless"],
-    'v3_fcst' : ["forecast_v3", "GloFAS v3 Forecast"],
-    'v3_consol' : ["consolidated_v3", "GloFAS v3 Consolidated"],
-    'v4_smls' : ["seamless_v4", "GloFAS v4 Seamless"],
-    'v4_fcst' : ["forecast_v4", "GloFAS v4 Forecast"],
-    'v4_consol' : ["consolidated_v4", "GloFAS v4 Consolidated"],
+    # Daily variables:
+    'dly' : {
+        'dc' : ["river_discharge", "River Discharge"],
+        'mn' : ["river_discharge_mean", "River Discharge Mean"],
+        'med' : ["river_discharge_median", "River Discharge Median"],
+        'max' : ["river_discharge_max", "River Discharge Max"],
+        'min' : ["river_discharge_min", "River Discharge Min"],
+        'p25' : ["river_discharge_p25", "River Discharge 25ᵗʰ Percentile"],
+        'p75' : ["river_discharge_p75", "River Discharge 75ᵗʰ Percentile"],
+    },
 }
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # IP-based location search using Geocoder:
 def find_ip(loc):
@@ -229,7 +236,7 @@ def find_ip(loc):
         'country': g.country,
     }
 
-def find_name(loc): return get('https://geocoding-api.open-meteo.com/v1/search?name=' + loc + '&count=1&language=en&format=json').json()['results'][0]
+def find_name(loc): return get('https://geocoding-api.open-meteo.com/v1/search?name=' + loc + '&count=1&language=en&format=json').json()['results'][0] # Location search based on Name/Postal Code
 
 #def forecast(param, model): return get('https://api.open-meteo.com/v1/' + model + param).json()
 
@@ -279,14 +286,5 @@ def pref():
             key = 'ss_ws_unit',
             help = ""
         )
-
-if any([
-    wx_opt == 'fcst',
-    wx_opt == 'ens',
-    wx_opt == 'hist',
-    wx_opt == 'clim'
-]):
-    param += '&timezone=auto'
-    pref()
 
 '''
