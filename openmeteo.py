@@ -164,39 +164,17 @@ if any([
 ]):
     param += "&timezone=auto"
 
-
-if wx_opt == "mar": # WX type: Marine
-    dly = "&daily="
-    dly_opt = st.multiselect(
-        label = "Daily Weather Variables",
-        options = dict_mar["dly"].keys(),
-        default = None,
-        format_func = lambda x: dict_fld["dly"][x][1],
-        key = None,
-        help = ""
-    )
-    for opt in dly_opt: dly += dict_fld["dly"][opt][0] + ","
-    param += dly
-    len_unit = st.radio(
-        label = "Length Unit",
-        options = ("m", "imp"),
-        format_func = lambda x: dict_unit[x],
-        horizontal = True,
-        key = "ss_len_unit",
-        help = ""
-    )
-
 if wx_opt == "fld": # WX type: Flood
     dly = "&daily="
     dly_opt = st.multiselect(
         label = "Daily Weather Variables",
-        options = dict_fld["dly"].keys(),
+        options = dict_fld.keys(),
         default = None,
-        format_func = lambda x: dict_fld["dly"][x][1],
+        format_func = lambda x: dict_fld[x],
         key = None,
         help = "Uses GloFAS version 3 with Seamless data (which combines Forecast & Consolidated historical data). For Version 4, no data is available yet."
     )
-    for opt in dly_opt: dly += dict_fld["dly"][opt][0] + ","
+    for opt in dly_opt: dly += opt + ","
     param += dly
             
     if stex_switch(
@@ -220,11 +198,42 @@ if wx_opt == "fld": # WX type: Flood
     param += dt
     st.sidebar.write("Date:", dt) # debug
 
-    data = flood(param)["daily"]
-
+    json_obj = flood(param)
+    data = json_obj["daily"]
+    unit = json_obj["daily_units"]
     df = {}
-    df["Time (YYYY-MM-DD)"] = data["time"]
-    for opt in dly_opt: df["%s (m³/s)" % dict_fld['dly'][opt][1]] = data[dict_fld['dly'][opt][0]]
+    fig = go.Figure()
+
+    for v in data:
+        if v == "time": df["Time (YYYY-MM-DD)"] = data[v]
+
+        elif v in dict_fld:
+            df["%s (%s)" % (dict_fld[v], unit[v])] = data[v]
+            fig.add_trace(go.Scatter(
+                x = data["time"],
+                y = data[v],
+                name = dict_fld[v],
+                mode = "lines+markers"
+            ))
+
+        else:
+            s = v.replace(v[-2:], "")
+            s += " " + v[-2:]
+            s = s.replace("_", " ")
+            s = s.title()
+            df["%s (%s)" % (s, unit[v])] = data[v]
+            fig.add_trace(go.Scatter(
+                x = data["time"],
+                y = data[v],
+                name = s,
+                mode = "lines+markers"
+            ))
+
+    fig.update_layout(
+        title="",
+        xaxis_title="Date",
+        yaxis_title="m³/s"
+    )
 
     with st.expander(
         label = "Table",
@@ -235,20 +244,6 @@ if wx_opt == "fld": # WX type: Flood
             use_container_width = True,
             hide_index = True
         )
-
-    fig = go.Figure()
-    for opt in dly_opt:
-        fig.add_trace(go.Scatter(
-            x = data["time"],
-            y = data[dict_fld['dly'][opt][0]],
-            name = dict_fld['dly'][opt][1],
-            mode = "lines+markers"
-        ))
-    fig.update_layout(
-        title="",
-        xaxis_title="Date",
-        yaxis_title="m³/s"
-    )
 
     with st.expander(
         label = "Chart",
@@ -261,9 +256,12 @@ if wx_opt == "fld": # WX type: Flood
             sharing = "streamlit"
         )
 
-    #st.sidebar.write("Data", data) # debug
+    st.sidebar.write("Dataframe", df) # debug
     
 # debug:
-st.sidebar.write("Parameters:", param)
-st.sidebar.write("Location:", loc)
-st.sidebar.write("Session State:", st.session_state)
+with st.sidebar:
+    st.divider()
+    st.subheader("DEBUG")
+    st.write("Parameters:", param)
+    st.write("Location:", loc)
+    st.write("Session State:", st.session_state)

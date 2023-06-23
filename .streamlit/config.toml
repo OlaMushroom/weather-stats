@@ -105,7 +105,7 @@ runOnSave = false
 
 # The port where the server will listen for browser connections.
 # Default: 8501
-port = 1337
+port = 8501
 
 # The base path for the URL where Streamlit should be served from.
 # Default: ""
@@ -123,11 +123,11 @@ enableXsrfProtection = true
 
 # Max size, in megabytes, for files uploaded with the file_uploader.
 # Default: 200
-maxUploadSize = 1000
+maxUploadSize = 200
 
 # Max size, in megabytes, of messages that can be sent via the WebSocket connection.
 # Default: 200
-maxMessageSize = 1000
+maxMessageSize = 200
 
 # Enables support for websocket compression.
 # Default: false
@@ -160,7 +160,7 @@ gatherUsageStats = false
 # Port where users should point their browsers in order to connect to the app.
 # This is used to: - Set the correct URL for CORS and XSRF protection purposes. - Show the URL on the terminal - Open the browser
 # Default: whatever value is set in server.port.
-serverPort = 1337
+serverPort = 8501
 
 
 [deprecation]
