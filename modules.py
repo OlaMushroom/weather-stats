@@ -2,68 +2,29 @@
 
 # Import modules:
 from requests import get
-from geocoder import ip
-
-# IMPORTANT (and i hate this):
-ss = {
-    "input" : {
-        "key": "in",
-        "val": "",
-    },
-
-    "latitude" : {
-        "key" : "lat",
-        "val" : None,
-    },
-
-    "longitude" : {
-        "key" : "long",
-        "val" : None,
-    },
-
-    "location" : {
-        "key" : "loc",
-        "val" : "",
-    },
-
-    "IP" : {
-        "key" : "ip",
-        "val" : "",
-    },
-}
-
-#-----------------------------------------------------------------------------------------------------------------------------------------------------
-
-# Location input types:
-dict_loc = {
-    None : "---",
-    "coord" : "Coordinates",
-    "name" : "Name/Postal code",
-    "ip" : "IP address",
-}
 
 # Unit types:
 dict_unit = {
     "temp" : {
-        "C" : ["celcius", "Celsius (°C)"],
-        "F" : ["fahrenheit", "Fahrenheit (°F)"],
+        "celcius" : "Celsius (°C)",
+        "fahrenheit" : "Fahrenheit (°F)",
     },
 
     "prec" : {
-        "mm" : ["millimeter", "Millimeter"],
-        "in" : ["inch", "Inch"],
+        "millimeter" : "Millimeter",
+        "inch" : "Inch",
     },
 
     "ws" : {
-        "kmh" : ["kmh", "Km/h"],
-        "ms" : ["ms", "m/s"],
-        "mph" : ["mph", "mi/h (Mph)"],
-        "kn" : ["kn", "Knots"],
+        "kmh" : "Km/h",
+        "ms" : "m/s",
+        "mph" : "mi/h (Mph)",
+        "kn" : "Knots",
     },
 
-    "mar" : {
-        "m" : ["metric", "Metric"],
-        "imp" : ["imperial", "Imperial"],
+    "len" : {
+        "metric" : "Metric",
+        "imperial" : "Imperial",
     },
 }
 
@@ -175,36 +136,36 @@ dict_aq = {
 dict_mar = {
     # Hourly variables:
     "hrly" : {
-        "mn_ht" : "wave_height",
-        "mn_dir" : "wave_direction",
-        "mn_prd" : "wave_period",
+        "wave_height" : "Wave Height",
+        "wave_direction" : "Wave Direction",
+        "wave_period" : "Wave Period",
 
-        "wnd_ht" : "wind_wave_height",
-        "wnd_dir" : "wind_wave_direction",
-        "wnd_prd" : "wind_wave_period",
-        "wnd_prd_pk" : "wind_wave_peak_period",
+        "wind_wave_height" : "Wind Wave Height",
+        "wind_wave_direction" : "Wind Wave Direction",
+        "wind_wave_period" : "Wind Wave Period",
+        "wind_wave_peak_period" : "Wind Wave Peak Period",
 
-        "swll_ht" : "swell_wave_height",
-        "swll_dir" : "swell_wave_direction",
-        "swll_prd" : "swell_wave_period",
-        "swll_prd_pk" : "swell_wave_peak_period",
+        "swell_wave_height" : "Swell Wave Height",
+        "swell_wave_direction" : "Swell Wave Direction",
+        "swell_wave_period" : "Swell Wave Period",
+        "swell_wave_peak_period" : "Swell Wave Peak Period",
     },
 
     # Daily variables:
     "dly" : {
-        "mn_ht" : "wave_height_max",
-        "mn_dir" : "wave_direction_dominant",
-        "mn_prd" : "wave_period_max",
+        "wave_height_max" : "Wave Height Max",
+        "wave_direction_dominant" : "Wave Direction Dominant",
+        "wave_period_max" : "Wave Period Max",
 
-        "wnd_ht" : "wind_wave_height_max",
-        "wnd_dir" : "wind_wave_direction_dominant",
-        "wnd_prd" : "wind_wave_period_max",
-        "wnd_prd_pk" : "wind_wave_peak_period_max",
+        "wind_wave_height_max" : "Wind Wave Height Max",
+        "wind_wave_direction_dominant" : "Wind Wave Direction Dominant",
+        "wind_wave_period_max" : "Wind Wave Period Max",
+        "wind_wave_peak_period_max" : "Wind Wave Peak Period Max",
 
-        "swll_ht" : "swell_wave_height_max",
-        "swll_dir" : "swell_wave_direction_dominant",
-        "swll_prd" : "swell_wave_period_max",
-        "swll_prd_pk" : "swell_wave_peak_period_max",
+        "swell_wave_height_max" : "Swell Wave Height Max",
+        "swell_wave_direction_dominant" : "Swell Wave Direction Dominant",
+        "swell_wave_period_max" : "Swell Wave Period Max",
+        "swell_wave_peak_period_max" : "Swell Wave Peak Period Max",
     },
 }
 
@@ -220,20 +181,6 @@ dict_fld = {
 }
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
-
-# IP-based location search using Geocoder:
-def find_ip(loc):
-    g = ip(loc)
-    return {
-        "ip": g.ip,
-        "lat": g.latlng[0],
-        "long": g.latlng[1],
-        "city": g.city,
-        "state": g.state,
-        "country": g.country,
-    }
-
-def find_name(loc): return get("https://geocoding-api.open-meteo.com/v1/search?name=" + loc + "&count=1&language=en&format=json").json()["results"][0] # Location search based on Name/Postal Code
 
 #def forecast(param, model): return get("https://api.open-meteo.com/v1/" + model + param).json()
 
