@@ -44,22 +44,6 @@ def ss_chk(param: str, var):
                 return var
             else: pass
 
-def get_date(start, end, min, max, key):
-    with sidebar:
-        date = date_range(
-            title = "Select a date range",
-            default_start = start,
-            default_end = end,
-            min_date = min,
-            max_date = max,
-            key = key
-        )
-
-        return {
-            "start_date" : date[0],
-            "end_date" : date[1]
-        }
-
 def find_name(loc): return get("https://geocoding-api.open-meteo.com/v1/search?name=" + loc + "&count=1&language=en&format=json").json()["results"][0] # Location search based on Name/Postal Code
 
 # IP-based location search using Geocoder:
@@ -82,7 +66,7 @@ dict_loc = {
     "ip" : "IP address",
 }
 
-# Location input:
+# Get location:
 def get_loc():
     loc = ""
     lat, long = 0, 0
@@ -164,3 +148,20 @@ def get_loc():
                 write("The current IP address is:", loc["ip"])
 
     write("Location:", loc) # debug
+
+# Get date:
+def get_date(start, end, min, max, key):
+    with sidebar:
+        date = date_range(
+            title = "Select a date range",
+            default_start = start,
+            default_end = end,
+            min_date = min,
+            max_date = max,
+            key = key
+        )
+
+        return {
+            "start_date" : date[0],
+            "end_date" : date[1]
+        }

@@ -4,7 +4,7 @@ from datetime import datetime
 #from dateutil.relativedelta import relativedelta as rltvD
 from dateutil.parser import isoparse
 import json
-#from pandas import DataFrame
+import pandas as pd
 import streamlit as st
 from meteostat import Point, Hourly, Daily
 
@@ -49,8 +49,27 @@ data_json = data.to_json(
 data_json = json.loads(data_json)
 
 for i in data_json["index"]:
-    st.write(isoparse(i))
+    j = data_json["index"].index(i)
+    data_json["index"][j] = isoparse(i)
+
+d = {}
+df = {}
+
+for i in data_json["columns"]:
+    d[dict_columns[i]] = []
+    c = data_json["columns"].index(i)
+
+    for j in data_json["data"]:
+        data_list = j
+        d[dict_columns[i]].append(data_list[c])
+
+df[dict_columns["time"]] = pd.Series(data_json["index"])
+for i in d: df[i] = pd.Series(d[i])
+
+st.dataframe(
+    data = df,
+    use_container_width = True,
+)
 
 # debug:
-st.write(data)
 st.write(data_json)
