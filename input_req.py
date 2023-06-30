@@ -1,4 +1,4 @@
-"""Location requesting module"""
+"""Input requesting module"""
 
 from requests import get
 from geocoder import ip # Module for searching location with IP address
@@ -150,7 +150,7 @@ def get_loc():
     write("Location:", loc) # debug
 
 # Get date:
-def get_date(start, end, min, max, key):
+def get_date(start, end, min, max, key: str):
     with sidebar:
         date = date_range(
             title = "Select a date range",

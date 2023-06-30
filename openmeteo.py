@@ -2,7 +2,7 @@
 
 # Import modules:
 from modules import *
-from geolocation_req import get_loc, get_date
+from input_req import get_loc, get_date
 from datetime import date
 from dateutil.relativedelta import relativedelta as rltvD
 
