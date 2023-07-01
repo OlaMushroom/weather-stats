@@ -1,5 +1,6 @@
 
 from input_req import get_loc, get_date
+from statistics import fmean, median_low, median_high, multimode
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta as rltvD
 from dateutil.parser import isoparse
@@ -57,6 +58,16 @@ wx_code = {
     "27" : "Storm",
 }
 
+low, high = None, None
+
+def ranking(data):
+    return {
+        "mean" : fmean(data),
+        "med_l" : median_low(data),
+        "med_h" : median_high(data),
+        "mode" : multimode(data),
+    }
+
 get_loc()
 
 st.sidebar.radio(
@@ -111,6 +122,7 @@ data_json = loads(data_json)
 
 data = {}
 df = {}
+rank = {}
 
 fig_temp = go.Figure()
 fig_rhum = go.Figure()
@@ -132,7 +144,9 @@ for i in data_json["columns"]:
 
 df["Time"] = pd.Series(data["Time"])
 for i in data:
-    if i != "Time": df[dict_col[i]] = pd.Series(data[i])
+    if i != "Time":
+        df[dict_col[i]] = pd.Series(data[i])
+        if i != "coco" and data[i][0] != None: rank[i] = ranking(data[i])
 
     if any([
         i == "temp",
@@ -206,22 +220,26 @@ st.dataframe(
     data = df,
     use_container_width = True,
 )
+with st.expander(
+    label = "Temperature"
+):
+    fig_temp.update_layout(
+        title = "Chart",
+        xaxis_title="Time",
+        yaxis_title="°C",
+    )
 
-fig_temp.update_layout(
-    title = st.session_state["data_opt"].capitalize() + " temperature",
-    xaxis_title="Time",
-    yaxis_title="°C",
-)
+    st.plotly_chart(
+        figure_or_data = fig_temp,
+        use_container_width = True,
+        theme = "streamlit"
+    )
 
-st.plotly_chart(
-    figure_or_data = fig_temp,
-    use_container_width = True,
-    theme = "streamlit"
-)
+    st.write(rank)
 
 if st.session_state["data_opt"] == "hourly":
     fig_rhum.update_layout(
-        title = st.session_state["data_opt"].capitalize() + " relative humidity",
+        title = "Relative humidity",
         xaxis_title="Time",
         yaxis_title="%",
     )
@@ -233,7 +251,7 @@ if st.session_state["data_opt"] == "hourly":
     )
 
 fig_prcp.update_layout(
-    title = st.session_state["data_opt"].capitalize() + " precipitation",
+    title = "Precipitation",
     xaxis_title="Time",
     yaxis_title="mm",
 )
@@ -246,7 +264,7 @@ st.plotly_chart(
 
 if st.session_state["data_opt"] == "hourly" or st.session_state["data_opt"] == "daily":
     fig_dir.update_layout(
-        title = st.session_state["data_opt"].capitalize() + " wind direction",
+        title = "Wind direction",
         xaxis_title="Time",
         yaxis_title="°",
     )
@@ -258,7 +276,7 @@ if st.session_state["data_opt"] == "hourly" or st.session_state["data_opt"] == "
     )
 
 fig_spd.update_layout(
-    title = st.session_state["data_opt"].capitalize() + " wind speed",
+    title = "Wind speed",
     xaxis_title="Time",
     yaxis_title="km/h",
 )
@@ -270,7 +288,7 @@ st.plotly_chart(
 )
 
 fig_pres.update_layout(
-    title = st.session_state["data_opt"].capitalize() + " average sea-level air pressure",
+    title = "Average sea-level air pressure",
     xaxis_title="Time",
     yaxis_title="hPa",
 )
@@ -283,7 +301,7 @@ st.plotly_chart(
 
 if st.session_state["data_opt"] == "hourly":
     fig_coco.update_layout(
-        title = st.session_state["data_opt"].capitalize() + " weather condition",
+        title = "Weather condition",
         xaxis_title="Time",
         yaxis_title="",
     )
@@ -295,5 +313,5 @@ if st.session_state["data_opt"] == "hourly":
     )
 
 # debug:
-#st.write(data)
+st.write(data)
 #st.write(st.session_state)
