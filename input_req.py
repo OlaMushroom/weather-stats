@@ -145,9 +145,8 @@ def get_loc():
                 ss_chk("lat", lat)
                 long = loc["long"]
                 ss_chk("long", long)
-                write("The current IP address is:", loc["ip"])
 
-    write("Location:", loc) # debug
+    #write("Location:", loc) # debug
 
 # Get date:
 def get_date(start, end, min, max, key: str):

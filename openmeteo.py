@@ -104,11 +104,14 @@ if wx_opt == "fld": # WX type: Flood
     param += dt
 
     json_obj = flood(param)
+
     st.write("Latitude:", json_obj["latitude"], "°")
     st.write("Longitude:", json_obj["longitude"], "°")
     st.write("Generation time:", json_obj["generationtime_ms"], "ms")
+
     data = json_obj["daily"]
     unit = json_obj["daily_units"]
+    
     df = {}
     fig = go.Figure()
 
