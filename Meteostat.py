@@ -1,17 +1,20 @@
 
-from input_req import get_loc, get_date
-from statistics import fmean, median_low, median_high, multimode
+# Import modules:
+from meteostat import Point, Hourly, Daily, Monthly
+from modules.main import get_loc, get_date, stats, chart
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta as rltvD
 from dateutil.parser import isoparse
 from json import loads
-import pandas as pd
+#import pandas as pd
+from pandas import Series
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots as subplot
 import streamlit as st
-from meteostat import Point, Hourly, Daily, Monthly
 
+# Weather data codes:
 dict_col = {
-    "station" : "Station",
+    #"station" : "Station",
     "temp" : "Temperature (°C)",
     "tavg" : "Average temperature (°C)",
     "tmin" : "Minimum temperature (°C)",
@@ -28,6 +31,7 @@ dict_col = {
     "coco" : "Weather condition"
 }
 
+# Weather condition codes:
 wx_code = {
     "1" : "Clear",
     "2" : "Fair",
@@ -58,18 +62,10 @@ wx_code = {
     "27" : "Storm",
 }
 
-low, high = None, None
-
-def ranking(data):
-    return {
-        "mean" : fmean(data),
-        "med_l" : median_low(data),
-        "med_h" : median_high(data),
-        "mode" : multimode(data),
-    }
-
+# Get location:
 get_loc()
 
+# Get data timescale:
 st.sidebar.radio(
     label = "Data timescale",
     options = ("hourly", "daily", "monthly"),
@@ -79,17 +75,19 @@ st.sidebar.radio(
     help = ""
 )
 
-dt = get_date(
-    start = date.today(),
-    end = date.today(),
-    min = datetime(2000, 1, 1),
-    max = date.today(),
-    key = "date",
-)
-
+# Get date:
+with st.sidebar:
+    dt = get_date(
+        start = date.today(),
+        end = date.today(),
+        min = datetime(2000, 1, 1),
+        max = date.today(),
+        key = "date",
+    )
 start_date = datetime.combine(dt["start_date"], datetime.min.time())
 end_date = datetime.combine(dt["end_date"], datetime.max.time())
 
+# Get data:
 if st.session_state["data_opt"] == "hourly":
     mtst_data = Hourly(
         loc = Point(st.session_state["lat"], st.session_state["long"]),
@@ -97,20 +95,21 @@ if st.session_state["data_opt"] == "hourly":
         end = end_date
     ).fetch()
 
-if st.session_state["data_opt"] == "daily":
+elif st.session_state["data_opt"] == "daily":
     mtst_data = Daily(
         loc = Point(st.session_state["lat"], st.session_state["long"]),
         start = start_date,
         end = end_date
     ).fetch()
 
-if st.session_state["data_opt"] == "monthly":
+elif st.session_state["data_opt"] == "monthly":
     mtst_data = Monthly(
         loc = Point(st.session_state["lat"], st.session_state["long"]),
         start = start_date,
         end = end_date
-    ).fetch()    
+    ).fetch()
 
+# Format data:
 data_json = mtst_data.to_json( # type:ignore
     path_or_buf = None,
     orient = "split",
@@ -120,20 +119,20 @@ data_json = mtst_data.to_json( # type:ignore
 )
 data_json = loads(data_json)
 
+# Store different data types:
 data = {}
 df = {}
 rank = {}
 
 fig_temp = go.Figure()
-fig_rhum = go.Figure()
-fig_prcp = go.Figure()
-fig_dir = go.Figure()
-fig_spd = go.Figure()
-fig_pres = go.Figure()
+fig_prcp = subplot(specs = [[{"secondary_y": True}]])
+fig_wnd = subplot(specs = [[{"secondary_y": True}]])
+fig_misc = subplot(specs = [[{"secondary_y": True}]])
 fig_coco = go.Figure()
 
-data["Time"] = []
-for i in data_json["index"]: data["Time"].append(isoparse(i))
+# Add data:
+timestamp = []
+for i in data_json["index"]: timestamp.append(isoparse(i))
 
 for i in data_json["columns"]:
     data[i] = []
@@ -142,11 +141,18 @@ for i in data_json["columns"]:
         if i == "coco": j[c] = wx_code[str(int(j[c]))]
         data[i].append(j[c])
 
-df["Time"] = pd.Series(data["Time"])
+df["Time"] = Series(timestamp)
 for i in data:
     if i != "Time":
-        df[dict_col[i]] = pd.Series(data[i])
-        if i != "coco" and data[i][0] != None: rank[i] = ranking(data[i])
+        df[dict_col[i]] = Series(data[i])
+        if i != "coco" and data[i][0] != None: rank[i] = stats(data[i])
+
+    param = go.Scatter(
+            x = timestamp,
+            y = data[i],
+            name = dict_col[i],
+            mode = "lines+markers+text"
+    )
 
     if any([
         i == "temp",
@@ -154,164 +160,67 @@ for i in data:
         i == "tmax",
         i == "tmin",
         i == "dwpt"
-    ]):
-        fig_temp.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
+    ]): fig_temp.add_trace(param)
 
-    if i == "rhum":
-        fig_rhum.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
-
-    if any([
+    elif any([
         i == "prcp",
-        i == "snow",
-    ]):
-        fig_prcp.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
+        i == "snow"
+    ]): fig_prcp.add_trace(param)
+    elif i == "rhum": fig_prcp.add_trace(param, secondary_y = True)
 
-    if i == "wdir":
-        fig_dir.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
-
-    if any([
+    elif any([
         i == "wspd",
         i == "wpgt",
-    ]):
-        fig_spd.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
+    ]): fig_wnd.add_trace(param)
+    elif i == "wdir": fig_wnd.add_trace(param, secondary_y = True)
 
-    if i == "pres":
-        fig_pres.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
+    elif i == "pres": fig_misc.add_trace(param)
+    elif i == "tsun": fig_misc.add_trace(param, secondary_y = True)
 
-    if i == "coco":
-        fig_coco.add_trace(go.Scatter(
-            x = data["Time"],
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers"
-        ))
+    elif i == "coco": fig_coco.add_trace(param)
 
-st.dataframe(
-    data = df,
-    use_container_width = True,
+st.dataframe(data = df, use_container_width = True)
+isHourly = st.session_state["data_opt"] == "hourly"
+# Temperature:
+expd_temp = st.expander(label = "Temperature")
+fig_temp.update_layout(
+    title = "Chart",
+    xaxis_title="Time",
+    yaxis_title="°C",
 )
-with st.expander(
-    label = "Temperature"
-):
-    fig_temp.update_layout(
+with expd_temp: chart(fig_temp)
+
+# Precipitation & relative humidity:
+expd_prcp = st.expander(label = "Precipitation (& relative humidity)")
+fig_prcp.update_layout(title = "Chart", xaxis_title="Time")
+fig_prcp.update_yaxes(title_text="mm", secondary_y=False)
+if isHourly: fig_prcp.update_yaxes(title_text="%", secondary_y=True)
+with expd_prcp: chart(fig_prcp)
+
+# Wind data:
+expd_wnd = st.expander(label = "Wind data")
+fig_wnd.update_layout(title = "Chart", xaxis_title="Time")
+fig_wnd.update_yaxes(title_text="km/h", secondary_y=False)
+if isHourly or st.session_state["data_opt"] == "daily": fig_wnd.update_yaxes(title_text="°", secondary_y=True)
+with expd_wnd: chart(fig_wnd)
+
+# Miscellaneous:
+expd_misc = st.expander(label = "Miscellaneous")
+fig_misc.update_layout(title = "Chart", xaxis_title="Time")
+fig_misc.update_yaxes(title_text="hPa", secondary_y=False)
+fig_misc.update_yaxes(title_text="minutes", secondary_y=True)
+with expd_misc: chart(fig_misc)
+
+if isHourly:
+    expd_coco = st.expander(label = "Weather condition")
+    fig_coco.update_layout(
         title = "Chart",
         xaxis_title="Time",
-        yaxis_title="°C",
+        yaxis_title="Conditions",
     )
-
-    st.plotly_chart(
-        figure_or_data = fig_temp,
-        use_container_width = True,
-        theme = "streamlit"
-    )
-
-    st.write(rank)
-
-if st.session_state["data_opt"] == "hourly":
-    fig_rhum.update_layout(
-        title = "Relative humidity",
-        xaxis_title="Time",
-        yaxis_title="%",
-    )
-
-    st.plotly_chart(
-    figure_or_data = fig_rhum,
-    use_container_width = True,
-    theme = "streamlit"
-    )
-
-fig_prcp.update_layout(
-    title = "Precipitation",
-    xaxis_title="Time",
-    yaxis_title="mm",
-)
-
-st.plotly_chart(
-    figure_or_data = fig_prcp,
-    use_container_width = True,
-    theme = "streamlit"
-)
-
-if st.session_state["data_opt"] == "hourly" or st.session_state["data_opt"] == "daily":
-    fig_dir.update_layout(
-        title = "Wind direction",
-        xaxis_title="Time",
-        yaxis_title="°",
-    )
-
-    st.plotly_chart(
-    figure_or_data = fig_dir,
-    use_container_width = True,
-    theme = "streamlit"
-    )
-
-fig_spd.update_layout(
-    title = "Wind speed",
-    xaxis_title="Time",
-    yaxis_title="km/h",
-)
-
-st.plotly_chart(
-    figure_or_data = fig_spd,
-    use_container_width = True,
-    theme = "streamlit"
-)
-
-fig_pres.update_layout(
-    title = "Average sea-level air pressure",
-    xaxis_title="Time",
-    yaxis_title="hPa",
-)
-
-st.plotly_chart(
-    figure_or_data = fig_pres,
-    use_container_width = True,
-    theme = "streamlit"
-)
-
-if st.session_state["data_opt"] == "hourly":
-    fig_coco.update_layout(
-        title = "Weather condition",
-        xaxis_title="Time",
-        yaxis_title="",
-    )
-
-    st.plotly_chart(
-    figure_or_data = fig_coco,
-    use_container_width = True,
-    theme = "streamlit"
-    )
+    with expd_coco: chart(fig_coco)
 
 # debug:
-st.write(data)
 #st.write(st.session_state)
+#st.write(rank)
+#st.write(data)

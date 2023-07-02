@@ -1,8 +1,8 @@
 """IMPORTANT: Prefix with an underscore anything that the user shouldn"t see."""
 
 # Import modules:
-from modules import *
-from input_req import get_loc, get_date
+from modules.openmeteo import *
+from modules.main import get_loc, get_date
 from datetime import date
 from dateutil.relativedelta import relativedelta as rltvD
 
@@ -93,13 +93,14 @@ if wx_opt == "fld": # WX type: Flood
     ): param += "&ensemble=true"
     else: param.replace("&ensemble=true", "")
 
-    dt = get_date(
-        start = date.today(),
-        end = date.today(),
-        min = date(1984, 1, 1),
-        max = date.today() + rltvD(months = +7),
-        key = "ss_dt_fld"
-    )
+    with st.sidebar:
+        dt = get_date(
+            start = date.today(),
+            end = date.today(),
+            min = date(1984, 1, 1),
+            max = date.today() + rltvD(months = +7),
+            key = "ss_dt_fld"
+        )
     dt = date_frmt(dt)
     param += dt
 

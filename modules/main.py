@@ -1,8 +1,9 @@
-"""Input requesting module"""
-
+"""Main module"""
+from collections import Counter
+from statistics import fmean, median_low, median_high, multimode
 from requests import get
 from geocoder import ip # Module for searching location with IP address
-from streamlit import write, text_input, number_input, radio, sidebar, columns, session_state
+from streamlit import write, text_input, number_input, radio, plotly_chart, sidebar, columns, session_state
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
 
 ss = {
@@ -150,17 +151,35 @@ def get_loc():
 
 # Get date:
 def get_date(start, end, min, max, key: str):
-    with sidebar:
-        date = date_range(
-            title = "Select a date range",
-            default_start = start,
-            default_end = end,
-            min_date = min,
-            max_date = max,
-            key = key
-        )
+    date = date_range(
+        title = "Select a date range",
+        default_start = start,
+        default_end = end,
+        min_date = min,
+        max_date = max,
+        key = key
+    )
 
-        return {
-            "start_date" : date[0],
-            "end_date" : date[1]
-        }
+    return {
+        "start_date" : date[0],
+        "end_date" : date[1]
+    }
+
+# Return statistics:
+def stats(data):
+    return {
+        "freq" : Counter(data),
+        "mean" : fmean(data),
+        "med_l" : median_low(data),
+        "med_h" : median_high(data),
+        "mode" : multimode(data),
+    }
+
+# Display plotly chart:
+def chart(fig):
+    return plotly_chart(
+        figure_or_data = fig,
+        use_container_width = True,
+        sharing = 'streamlit',
+        theme = 'streamlit'
+    )
