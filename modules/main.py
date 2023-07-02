@@ -168,11 +168,11 @@ def get_date(start, end, min, max, key: str):
 # Return statistics:
 def stats(data):
     return {
-        "freq" : Counter(data),
         "mean" : fmean(data),
         "med_l" : median_low(data),
         "med_h" : median_high(data),
         "mode" : multimode(data),
+        "freq" : Counter(data)
     }
 
 # Display plotly chart:

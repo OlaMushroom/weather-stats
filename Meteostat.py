@@ -76,37 +76,50 @@ st.sidebar.radio(
 )
 
 # Get date:
-with st.sidebar:
-    dt = get_date(
-        start = date.today(),
-        end = date.today(),
-        min = datetime(2000, 1, 1),
-        max = date.today(),
-        key = "date",
-    )
-start_date = datetime.combine(dt["start_date"], datetime.min.time())
-end_date = datetime.combine(dt["end_date"], datetime.max.time())
+def mtst_date(current):
+    with st.sidebar:
+        dt = get_date(
+            start = current,
+            end = current,
+            min = datetime(2000, 1, 1),
+            max = current,
+            key = "date",
+        )
+
+    return {
+        0 : datetime.combine(dt["start_date"], datetime.min.time()),
+        1 : datetime.combine(dt["end_date"], datetime.max.time())
+    }
+
+today = date.today()
 
 # Get data:
 if st.session_state["data_opt"] == "hourly":
+    dt = mtst_date(today)
+
     mtst_data = Hourly(
         loc = Point(st.session_state["lat"], st.session_state["long"]),
-        start = start_date,
-        end = end_date
+        start = dt[0],
+        end = dt[1]
     ).fetch()
 
 elif st.session_state["data_opt"] == "daily":
+    dt = mtst_date(today)
+
     mtst_data = Daily(
         loc = Point(st.session_state["lat"], st.session_state["long"]),
-        start = start_date,
-        end = end_date
+        start = dt[0],
+        end = dt[1]
     ).fetch()
 
 elif st.session_state["data_opt"] == "monthly":
+    today = date(2023, 4, 1)
+    dt = mtst_date(today)
+
     mtst_data = Monthly(
         loc = Point(st.session_state["lat"], st.session_state["long"]),
-        start = start_date,
-        end = end_date
+        start = dt[0],
+        end = dt[1]
     ).fetch()
 
 # Format data:
@@ -148,10 +161,10 @@ for i in data:
         if i != "coco" and data[i][0] != None: rank[i] = stats(data[i])
 
     param = go.Scatter(
-            x = timestamp,
-            y = data[i],
-            name = dict_col[i],
-            mode = "lines+markers+text"
+        name = dict_col[i],
+        x = timestamp,
+        y = data[i],
+        mode = "lines+markers+text"
     )
 
     if any([
@@ -191,22 +204,22 @@ fig_temp.update_layout(
 with expd_temp: chart(fig_temp)
 
 # Precipitation & relative humidity:
-expd_prcp = st.expander(label = "Precipitation (& relative humidity)")
-fig_prcp.update_layout(title = "Chart", xaxis_title="Time")
+expd_prcp = st.expander(label = "Precipitation")
+fig_prcp.update_layout(title = "Chart", xaxis_title="Time", showlegend = True)
 fig_prcp.update_yaxes(title_text="mm", secondary_y=False)
 if isHourly: fig_prcp.update_yaxes(title_text="%", secondary_y=True)
 with expd_prcp: chart(fig_prcp)
 
 # Wind data:
 expd_wnd = st.expander(label = "Wind data")
-fig_wnd.update_layout(title = "Chart", xaxis_title="Time")
+fig_wnd.update_layout(title = "Chart", xaxis_title="Time", showlegend = True)
 fig_wnd.update_yaxes(title_text="km/h", secondary_y=False)
 if isHourly or st.session_state["data_opt"] == "daily": fig_wnd.update_yaxes(title_text="°", secondary_y=True)
 with expd_wnd: chart(fig_wnd)
 
 # Miscellaneous:
 expd_misc = st.expander(label = "Miscellaneous")
-fig_misc.update_layout(title = "Chart", xaxis_title="Time")
+fig_misc.update_layout(title = "Chart", xaxis_title="Time", showlegend = True)
 fig_misc.update_yaxes(title_text="hPa", secondary_y=False)
 fig_misc.update_yaxes(title_text="minutes", secondary_y=True)
 with expd_misc: chart(fig_misc)
@@ -222,5 +235,5 @@ if isHourly:
 
 # debug:
 #st.write(st.session_state)
-#st.write(rank)
+st.write(rank)
 #st.write(data)
