@@ -6,10 +6,9 @@ from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta as rltvD
 from dateutil.parser import isoparse
 from json import loads
-#import pandas as pd
 from pandas import Series
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots as subplot
+import plotly.graph_objects as go
 import streamlit as st
 
 # Weather data codes:
@@ -62,21 +61,8 @@ wx_code = {
     "27" : "Storm",
 }
 
-# Get location:
-get_loc()
-
-# Get data timescale:
-st.sidebar.radio(
-    label = "Data timescale",
-    options = ("hourly", "daily", "monthly"),
-    format_func = lambda x: x.capitalize(),
-    horizontal = True,
-    key = "data_opt",
-    help = ""
-)
-
-# Get date:
-def mtst_date(current):
+today = date.today()
+def mtst_date(current): # Get date
     with st.sidebar:
         dt = get_date(
             start = current,
@@ -91,14 +77,29 @@ def mtst_date(current):
         1 : datetime.combine(dt["end_date"], datetime.max.time())
     }
 
-today = date.today()
+if "lat" not in st.session_state: st.session_state["lat"] = 0
+if "long" not in st.session_state: st.session_state["long"] = 0
+get_loc() # Get location
+
+# Get data timescale:
+st.sidebar.radio(
+    label = "Data timescale",
+    options = ("hourly", "daily", "monthly"),
+    format_func = lambda x: x.capitalize(),
+    horizontal = True,
+    key = "data_opt",
+    help = ""
+)
+
+lat = st.session_state["lat"]
+long = st.session_state["long"]
 
 # Get data:
 if st.session_state["data_opt"] == "hourly":
     dt = mtst_date(today)
 
     mtst_data = Hourly(
-        loc = Point(st.session_state["lat"], st.session_state["long"]),
+        loc = Point(lat, long),
         start = dt[0],
         end = dt[1]
     ).fetch()
@@ -107,7 +108,7 @@ elif st.session_state["data_opt"] == "daily":
     dt = mtst_date(today)
 
     mtst_data = Daily(
-        loc = Point(st.session_state["lat"], st.session_state["long"]),
+        loc = Point(lat, long),
         start = dt[0],
         end = dt[1]
     ).fetch()
@@ -117,7 +118,7 @@ elif st.session_state["data_opt"] == "monthly":
     dt = mtst_date(today)
 
     mtst_data = Monthly(
-        loc = Point(st.session_state["lat"], st.session_state["long"]),
+        loc = Point(lat, long),
         start = dt[0],
         end = dt[1]
     ).fetch()
@@ -158,7 +159,15 @@ df["Time"] = Series(timestamp)
 for i in data:
     if i != "Time":
         df[dict_col[i]] = Series(data[i])
-        if i != "coco" and data[i][0] != None: rank[i] = stats(data[i])
+
+        if i != "coco":
+            isNone = False
+            for n in data[i]:
+                if n == None:
+                    isNone = True
+                    break
+            if isNone == False: rank[i] = stats(data[i])
+            else: pass
 
     param = go.Scatter(
         name = dict_col[i],
@@ -193,7 +202,9 @@ for i in data:
     elif i == "coco": fig_coco.add_trace(param)
 
 st.dataframe(data = df, use_container_width = True)
+
 isHourly = st.session_state["data_opt"] == "hourly"
+
 # Temperature:
 expd_temp = st.expander(label = "Temperature")
 fig_temp.update_layout(
@@ -233,7 +244,12 @@ if isHourly:
     )
     with expd_coco: chart(fig_coco)
 
+for i in rank:
+    st.divider()
+    st.subheader(dict_col[i])
+    for j in rank[i]: st.write(j, rank[i][j])
+
 # debug:
 #st.write(st.session_state)
 st.write(rank)
-#st.write(data)
+st.write(data)
