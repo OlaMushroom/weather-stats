@@ -205,43 +205,42 @@ st.dataframe(data = df, use_container_width = True)
 
 isHourly = st.session_state["data_opt"] == "hourly"
 
+#fig_param = title = "Chart", xaxis_title="Time",
+
+def fig_update(fig, y1: str):
+    fig.update_layout(
+        title = "Chart",
+        xaxis_title = "Time",
+        yaxis_title = y1,
+        showlegend = True
+    )
+
 # Temperature:
 expd_temp = st.expander(label = "Temperature")
-fig_temp.update_layout(
-    title = "Chart",
-    xaxis_title="Time",
-    yaxis_title="°C",
-)
+fig_update(fig_temp, "°C")
 with expd_temp: chart(fig_temp)
 
 # Precipitation & relative humidity:
 expd_prcp = st.expander(label = "Precipitation")
-fig_prcp.update_layout(title = "Chart", xaxis_title="Time", showlegend = True)
-fig_prcp.update_yaxes(title_text="mm", secondary_y=False)
+fig_update(fig_prcp, "mm")
 if isHourly: fig_prcp.update_yaxes(title_text="%", secondary_y=True)
 with expd_prcp: chart(fig_prcp)
 
 # Wind data:
 expd_wnd = st.expander(label = "Wind data")
-fig_wnd.update_layout(title = "Chart", xaxis_title="Time", showlegend = True)
-fig_wnd.update_yaxes(title_text="km/h", secondary_y=False)
+fig_update(fig_wnd, "km/h")
 if isHourly or st.session_state["data_opt"] == "daily": fig_wnd.update_yaxes(title_text="°", secondary_y=True)
 with expd_wnd: chart(fig_wnd)
 
 # Miscellaneous:
 expd_misc = st.expander(label = "Miscellaneous")
-fig_misc.update_layout(title = "Chart", xaxis_title="Time", showlegend = True)
-fig_misc.update_yaxes(title_text="hPa", secondary_y=False)
+fig_update(fig_misc, "hPa")
 fig_misc.update_yaxes(title_text="minutes", secondary_y=True)
 with expd_misc: chart(fig_misc)
 
 if isHourly:
     expd_coco = st.expander(label = "Weather condition")
-    fig_coco.update_layout(
-        title = "Chart",
-        xaxis_title="Time",
-        yaxis_title="Conditions",
-    )
+    fig_update(fig_coco, "Conditions")
     with expd_coco: chart(fig_coco)
 
 for i in rank:
@@ -251,5 +250,5 @@ for i in rank:
 
 # debug:
 #st.write(st.session_state)
-st.write(rank)
-st.write(data)
+#st.write(rank)
+#st.write(data)
