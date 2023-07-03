@@ -1,4 +1,4 @@
-
+"""Meteostat weather data"""
 # Import modules:
 from meteostat import Point, Hourly, Daily, Monthly
 from modules.main import get_loc, get_date, stats, chart
