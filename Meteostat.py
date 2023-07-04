@@ -3,11 +3,11 @@
 from meteostat import Point, Hourly, Daily, Monthly
 from modules.main import get_loc, get_date, stats, chart
 from collections import Counter
+from json import loads
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta as rltvD
 from dateutil.parser import isoparse
-from json import loads
-from pandas import DataFrame, Series
+from pandas import Series
 from plotly.subplots import make_subplots as subplot
 import plotly.graph_objects as go
 import streamlit as st
@@ -41,7 +41,6 @@ wx_code = { # Weather condition codes
     "26" : "Heavy Thunderstorm",
     "27" : "Storm",
 }
-
 
 dict_abbr = { # Abbreviations
     #"station" : "Station",
