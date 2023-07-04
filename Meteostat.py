@@ -2,36 +2,17 @@
 # Import modules:
 from meteostat import Point, Hourly, Daily, Monthly
 from modules.main import get_loc, get_date, stats, chart
+from collections import Counter
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta as rltvD
 from dateutil.parser import isoparse
 from json import loads
-from pandas import Series
+from pandas import DataFrame, Series
 from plotly.subplots import make_subplots as subplot
 import plotly.graph_objects as go
 import streamlit as st
 
-# Weather data codes:
-dict_col = {
-    #"station" : "Station",
-    "temp" : "Temperature (°C)",
-    "tavg" : "Average temperature (°C)",
-    "tmin" : "Minimum temperature (°C)",
-    "tmax" : "Maximum temperature (°C)",
-    "dwpt" : "Dew point (°C)",
-    "rhum" : "Relative humidity (%)",
-    "prcp" : "Precipitation (mm)",
-    "snow" : "Snow depth (mm)",
-    "wdir" : "Wind direction (°)",
-    "wspd" : "Wind speed (km/h)",
-    "wpgt" : "Peak wind gust (km/h)",
-    "pres" : "Average sea-level air pressure (hPa)",
-    "tsun" : "Sunshine total (minutes)",
-    "coco" : "Weather condition"
-}
-
-# Weather condition codes:
-wx_code = {
+wx_code = { # Weather condition codes
     "1" : "Clear",
     "2" : "Fair",
     "3" : "Cloudy",
@@ -61,7 +42,35 @@ wx_code = {
     "27" : "Storm",
 }
 
-today = date.today()
+
+dict_abbr = { # Abbreviations
+    #"station" : "Station",
+    "temp" : "Temperature (°C)",
+    "tavg" : "Average temperature (°C)",
+    "tmin" : "Minimum temperature (°C)",
+    "tmax" : "Maximum temperature (°C)",
+    "dwpt" : "Dew point (°C)",
+    "rhum" : "Relative humidity (%)",
+    "prcp" : "Precipitation (mm)",
+    "snow" : "Snow depth (mm)",
+    "wdir" : "Wind direction (°)",
+    "wspd" : "Wind speed (km/h)",
+    "wpgt" : "Peak wind gust (km/h)",
+    "pres" : "Average sea-level air pressure (hPa)",
+    "tsun" : "Sunshine total (minutes)",
+    "coco" : "Weather condition",
+    "mean" : "Mean",
+    "med_l" : "Low median",
+    "med_h" : "High median",
+    "mode" : "Mode",
+    "freq" : "Frequency",
+}
+
+list_temp = ["temp", "tavg", "tmin", "tmax", "dwpt"]
+list_prcp = [ "rhum", "prcp", "snow"]
+list_wind = ["wdir", "wspd", "wpgt"]
+list_misc = ["pres", "tsun"]
+
 def mtst_date(current): # Get date
     with st.sidebar:
         dt = get_date(
@@ -71,15 +80,14 @@ def mtst_date(current): # Get date
             max = current,
             key = "date",
         )
-
     return {
         0 : datetime.combine(dt["start_date"], datetime.min.time()),
         1 : datetime.combine(dt["end_date"], datetime.max.time())
     }
 
-if "lat" not in st.session_state: st.session_state["lat"] = 0
-if "long" not in st.session_state: st.session_state["long"] = 0
-get_loc() # Get location
+loc = get_loc() # Get location
+lat = loc[0]
+long = loc[1]
 
 # Get data timescale:
 st.sidebar.radio(
@@ -91,40 +99,33 @@ st.sidebar.radio(
     help = ""
 )
 
-lat = st.session_state["lat"]
-long = st.session_state["long"]
+def get_data(): # Get data
+    if st.session_state["data_opt"] == "hourly":
+        dt = mtst_date(date.today())
+        return Hourly(
+            loc = Point(lat, long),
+            start = dt[0],
+            end = dt[1]
+        ).fetch()
 
-# Get data:
-if st.session_state["data_opt"] == "hourly":
-    dt = mtst_date(today)
+    elif st.session_state["data_opt"] == "daily":
+        dt = mtst_date(date.today())
+        return Daily(
+            loc = Point(lat, long),
+            start = dt[0],
+            end = dt[1]
+        ).fetch()
 
-    mtst_data = Hourly(
-        loc = Point(lat, long),
-        start = dt[0],
-        end = dt[1]
-    ).fetch()
-
-elif st.session_state["data_opt"] == "daily":
-    dt = mtst_date(today)
-
-    mtst_data = Daily(
-        loc = Point(lat, long),
-        start = dt[0],
-        end = dt[1]
-    ).fetch()
-
-elif st.session_state["data_opt"] == "monthly":
-    today = date(2023, 4, 1)
-    dt = mtst_date(today)
-
-    mtst_data = Monthly(
-        loc = Point(lat, long),
-        start = dt[0],
-        end = dt[1]
-    ).fetch()
+    elif st.session_state["data_opt"] == "monthly":
+        dt = mtst_date(date(2023, 4, 1))
+        return Monthly(
+            loc = Point(lat, long),
+            start = dt[0],
+            end = dt[1]
+        ).fetch()
 
 # Format data:
-data_json = mtst_data.to_json( # type:ignore
+data_json = get_data().to_json( # type:ignore
     path_or_buf = None,
     orient = "split",
     date_format = 'iso',
@@ -133,18 +134,8 @@ data_json = mtst_data.to_json( # type:ignore
 )
 data_json = loads(data_json)
 
-# Store different data types:
+# Reorganize data:
 data = {}
-df = {}
-rank = {}
-
-fig_temp = go.Figure()
-fig_prcp = subplot(specs = [[{"secondary_y": True}]])
-fig_wnd = subplot(specs = [[{"secondary_y": True}]])
-fig_misc = subplot(specs = [[{"secondary_y": True}]])
-fig_coco = go.Figure()
-
-# Add data:
 timestamp = []
 for i in data_json["index"]: timestamp.append(isoparse(i))
 
@@ -155,34 +146,34 @@ for i in data_json["columns"]:
         if i == "coco": j[c] = wx_code[str(int(j[c]))]
         data[i].append(j[c])
 
+rank = {}
+def ranking(): # Create statistics ranking
+    for n in data[i]:
+        if n == None: return True
+    rank[i] = stats(data[i])
+
+# Create plotly figures:
+fig_temp = go.Figure()
+fig_prcp = subplot(specs = [[{"secondary_y": True}]])
+fig_wind = subplot(specs = [[{"secondary_y": True}]])
+fig_misc = subplot(specs = [[{"secondary_y": True}]])
+fig_wxco = go.Figure()
+
+# Process data to dataframe and figures:
+df = {}
 df["Time"] = Series(timestamp)
 for i in data:
-    if i != "Time":
-        df[dict_col[i]] = Series(data[i])
-
-        if i != "coco":
-            isNone = False
-            for n in data[i]:
-                if n == None:
-                    isNone = True
-                    break
-            if isNone == False: rank[i] = stats(data[i])
-            else: pass
+    if i != "Time": df[dict_abbr[i]] = Series(data[i])
+    if i != "coco" and len(data[i]) != 0: ranking()
 
     param = go.Scatter(
-        name = dict_col[i],
+        name = dict_abbr[i],
         x = timestamp,
         y = data[i],
         mode = "lines+markers+text"
     )
 
-    if any([
-        i == "temp",
-        i == "tavg",
-        i == "tmax",
-        i == "tmin",
-        i == "dwpt"
-    ]): fig_temp.add_trace(param)
+    if i in list_temp: fig_temp.add_trace(param)
 
     elif any([
         i == "prcp",
@@ -193,60 +184,127 @@ for i in data:
     elif any([
         i == "wspd",
         i == "wpgt",
-    ]): fig_wnd.add_trace(param)
-    elif i == "wdir": fig_wnd.add_trace(param, secondary_y = True)
+    ]): fig_wind.add_trace(param)
+    elif i == "wdir": fig_wind.add_trace(param, secondary_y = True)
 
     elif i == "pres": fig_misc.add_trace(param)
     elif i == "tsun": fig_misc.add_trace(param, secondary_y = True)
 
-    elif i == "coco": fig_coco.add_trace(param)
+    elif i == "coco": fig_wxco.add_trace(param)
 
-st.dataframe(data = df, use_container_width = True)
+st.dataframe(data = df, use_container_width = True) # Display dataframe
 
-isHourly = st.session_state["data_opt"] == "hourly"
-
-#fig_param = title = "Chart", xaxis_title="Time",
-
-def fig_update(fig, y1: str):
+def fig_update(fig, y1: str): # Update figure
     fig.update_layout(
         title = "Chart",
         xaxis_title = "Time",
         yaxis_title = y1,
         showlegend = True
     )
+    fig.update_xaxes(rangeslider_visible = True) # Update figure with x-axis range slider
 
-# Temperature:
-expd_temp = st.expander(label = "Temperature")
+def y2(fig, text): fig.update_yaxes(title_text = text, secondary_y = True) # Update figure with two y-axes
+
+def rank_show(set): # Display statistics
+    for data in rank:
+        if data in set:
+            st.divider()
+            st.subheader(dict_abbr[data])
+            for stat in rank[data]:
+                if isinstance(rank[data][stat], (int, float, str)): st.metric(dict_abbr[stat], rank[data][stat]) # Display metrics of statistics
+
+            with st.expander("Frequency"):
+                # Display frequency dataframe:
+                st.dataframe(
+                    data = rank[data]["freq"],
+                    use_container_width = True,
+                    column_config = {
+                        "_index" : st.column_config.Column(
+                            label = "Value",
+                            help = "",
+                        ),
+
+                        "value" : st.column_config.Column(
+                            label = "Frequency",
+                            help = "",
+                        )
+                    }
+                )
+                
+                # Create frequency figure:
+                fig_freq = go.Figure(data = [go.Bar(
+                        x = list(rank[data]["freq"].keys()),
+                        y = list(rank[data]["freq"].values()),
+                        textposition = "auto",
+                    )])
+
+                fig_freq.update_layout(
+                    title = "Chart",
+                    xaxis_title = "Value",
+                    yaxis_title = "Frequency"
+                )
+                fig_freq.update_xaxes(rangeslider_visible = True)
+                chart(fig_freq) # Display frequency figure
+
+# Update figures:
 fig_update(fig_temp, "°C")
-with expd_temp: chart(fig_temp)
 
-# Precipitation & relative humidity:
-expd_prcp = st.expander(label = "Precipitation")
 fig_update(fig_prcp, "mm")
-if isHourly: fig_prcp.update_yaxes(title_text="%", secondary_y=True)
-with expd_prcp: chart(fig_prcp)
 
-# Wind data:
-expd_wnd = st.expander(label = "Wind data")
-fig_update(fig_wnd, "km/h")
-if isHourly or st.session_state["data_opt"] == "daily": fig_wnd.update_yaxes(title_text="°", secondary_y=True)
-with expd_wnd: chart(fig_wnd)
+fig_update(fig_wind, "km/h")
 
-# Miscellaneous:
-expd_misc = st.expander(label = "Miscellaneous")
 fig_update(fig_misc, "hPa")
-fig_misc.update_yaxes(title_text="minutes", secondary_y=True)
-with expd_misc: chart(fig_misc)
+y2(fig_misc, "minutes")
 
-if isHourly:
-    expd_coco = st.expander(label = "Weather condition")
-    fig_update(fig_coco, "Conditions")
-    with expd_coco: chart(fig_coco)
+tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([ # Create tabs to organize & display data
+    "Temperature",
+    "Precipitation",
+    "Wind data",
+    "Miscellaneous",
+    "Weather conditions"
+])
 
-for i in rank:
-    st.divider()
-    st.subheader(dict_col[i])
-    for j in rank[i]: st.write(j, rank[i][j])
+if st.session_state["data_opt"] == "hourly": # More updates to figures when current data timescale is hourly
+    y2(fig_prcp, "%")
+    if st.session_state["data_opt"] == "daily": y2(fig_wind, "°")
+    fig_update(fig_wxco, "Conditions")
+    
+    # Create frequency figure for weather conditions:
+    wxco_freq = Counter(data["coco"])
+    fig_wxco_freq = go.Figure(data = [go.Bar(
+            x = list(wxco_freq.keys()),
+            y = list(wxco_freq.values()),
+            textposition = "auto",
+    )])
+
+    fig_wxco_freq.update_layout(
+        title = "Frequency",
+        xaxis_title = "Value",
+        yaxis_title = "Frequency"
+    )
+    fig_wxco_freq.update_xaxes(rangeslider_visible = True)
+
+    # Display figures for weather conditions:
+    with tab_wxco:
+        chart(fig_wxco)
+        chart(fig_wxco_freq)    
+    
+# Display figures:
+with tab_temp:
+    chart(fig_temp)
+    rank_show(list_temp)
+
+with tab_prcp:
+    chart(fig_prcp)
+    rank_show(list_prcp)
+
+with tab_wind:
+    chart(fig_wind)
+    rank_show(list_wind)
+
+with tab_misc:
+    chart(fig_misc)
+    rank_show(list_misc)
 
 # debug:
 #st.write(st.session_state)

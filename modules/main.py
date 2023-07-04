@@ -1,9 +1,9 @@
 """Main module"""
 from collections import Counter
-from statistics import fmean, median_low, median_high, multimode
+from statistics import fmean, median_low, median_high
 from requests import get
 from geocoder import ip # Module for searching location with IP address
-from streamlit import write, text_input, number_input, radio, plotly_chart, sidebar, columns, session_state
+from streamlit import write, subheader, text_input, number_input, radio, plotly_chart, sidebar, columns, session_state
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
 
 ss = {
@@ -61,7 +61,7 @@ def find_ip(loc):
 
 # Location input types:
 dict_loc = {
-    None : "---",
+    None : "None",
     "coord" : "Coordinates",
     "name" : "Name/Postal code",
     "ip" : "IP address",
@@ -127,10 +127,14 @@ def get_loc():
 
             if session_state["loc"] != "":
                 loc = find_name(in_loc)
+                subheader(loc["name"] + ", " + loc["admin1"] + ", " + loc["country"])
+
                 lat = loc["latitude"]
                 ss_chk("lat", lat)
+
                 long = loc["longitude"]
                 ss_chk("long", long)
+                
 
         elif session_state["in"] == "ip": # IP address
             in_loc = text_input(
@@ -142,12 +146,21 @@ def get_loc():
             
             if session_state["ip"] != "":
                 loc = find_ip(in_loc)
+                subheader(loc["city"] + ", " + loc["state"] + ", " + loc["country"])
+
                 lat = loc["lat"]
                 ss_chk("lat", lat)
+
                 long = loc["long"]
                 ss_chk("long", long)
+                
+        write("Latitude:", lat, ",", "Longitude:", long)
+        #write("Location:", loc) # debug
 
-    #write("Location:", loc) # debug
+    return {
+        0 : session_state["lat"],
+        1 : session_state["long"],
+    }
 
 # Get date:
 def get_date(start, end, min, max, key: str):
@@ -171,7 +184,6 @@ def stats(data):
         "mean" : fmean(data),
         "med_l" : median_low(data),
         "med_h" : median_high(data),
-        "mode" : multimode(data),
         "freq" : Counter(data)
     }
 
