@@ -45,7 +45,7 @@ def ss_chk(param: str, var):
                 return var
             else: pass
 
-def find_name(loc): return get("https://geocoding-api.open-meteo.com/v1/search?name=" + loc + "&count=1&language=en&format=json").json()["results"][0] # Location search based on Name/Postal Code
+def find_name(loc): return get("http://geocoding-api.open-meteo.com/v1/search?name=" + loc + "&count=1&language=en&format=json").json()["results"][0] # Location search based on Name/Postal Code
 
 # IP-based location search using Geocoder:
 def find_ip(loc):
