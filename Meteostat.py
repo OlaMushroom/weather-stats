@@ -84,9 +84,9 @@ def mtst_date(current): # Get date
         1 : datetime.combine(dt["end_date"], datetime.max.time())
     }
 
-loc = get_loc() # Get location
-lat = loc[0]
-long = loc[1]
+#loc = get_loc() # Get location
+lat = 51.507359
+long = -0.136439
 
 # Get data timescale:
 st.sidebar.radio(
