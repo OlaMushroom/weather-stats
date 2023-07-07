@@ -1,0 +1,70 @@
+[client]
+# Controls whether uncaught app exceptions and deprecation warnings
+# are displayed in the browser. By default, this is set to True and
+# Streamlit displays app exceptions and associated tracebacks, and
+# deprecation warnings, in the browser.
+
+# If set to False, deprecation warnings and full exception messages
+# will print to the console only. Exceptions will still display in the
+# browser with a generic error message. For now, the exception type and
+# traceback show in the browser also, but they will be removed in the
+# future.
+
+# Default: true
+showErrorDetails = false
+
+
+[server]
+
+# Max size, in megabytes, for files uploaded with the file_uploader.
+
+# Default: 200
+maxUploadSize = 500
+
+# Max size, in megabytes, of messages that can be sent via the WebSocket
+# connection.
+
+# Default: 200
+maxMessageSize = 500
+
+# Enables support for websocket compression.
+
+# Default: false
+enableWebsocketCompression = true
+
+# Enable serving files from a `static` directory in the running app's
+# directory.
+
+# Default: false
+enableStaticServing = false
+
+
+[browser]
+
+# Whether to send usage statistics to Streamlit.
+
+# Default: true
+gatherUsageStats = false
+
+
+[theme]
+
+# The preset Streamlit theme that your custom theme inherits from.
+# One of "light" or "dark".
+# base =
+
+# Primary accent color for interactive elements.
+# primaryColor =
+
+# Background color for the main content area.
+# backgroundColor =
+
+# Background color used for the sidebar and most interactive widgets.
+# secondaryBackgroundColor =
+
+# Color used for almost all text.
+# textColor =
+
+# Font family for all text in the app, except code blocks. One of "sans serif",
+# "serif", or "monospace".
+# font =
