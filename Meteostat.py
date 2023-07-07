@@ -10,19 +10,18 @@ from dateutil.parser import isoparse
 from pandas import Series
 from plotly.subplots import make_subplots as subplot
 import plotly.graph_objects as go
-import streamlit as st
 from PIL import Image
-icon = Image.open("./static/icon.png")
+import streamlit as st
 
 st.set_page_config(
     page_title = "Meteostat",
-    page_icon = icon,
+    page_icon = Image.open("./static/icon.png"),
     layout = "wide",
     initial_sidebar_state = "expanded",
     menu_items = {
         "Get Help" : "https://github.com/OlaMushroom/weather-stats/wiki",
         "Report a bug" : "https://github.com/OlaMushroom/weather-stats/issues",
-        "About" : "https://meteostat.net"
+        "About" : "Data provider: https://meteostat.net"
     }
 )
 
