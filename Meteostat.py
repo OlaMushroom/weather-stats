@@ -112,7 +112,7 @@ with st.sidebar:
 with st.form("form"): # Create a form
     with st.sidebar:      
         data_opt = st.sidebar.radio(
-            label = "Data timescale",
+            label = "Timescale",
             options = ("hourly", "daily", "monthly"),
             format_func = lambda x: x.capitalize(),
             horizontal = True,

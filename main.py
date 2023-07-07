@@ -49,7 +49,7 @@ def find_coord(): # Get coordinates
 
 def find_name(): # Location search based on Name/Postal Code using Open-Meteo Geocoding API
     input = st.sidebar.text_input(
-        label = "Location name or postal code:",
+        label = "Location name or postal code",
         key = "name",
         help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
     )
@@ -64,7 +64,7 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
 
 def find_ip(): # IP-based location search using Geocoder
     input = st.sidebar.text_input(
-        label = "IP address:",
+        label = "IP address",
         key = "ip",
         help = 'If you want to get your current IP address, you can type "me" in the box.'
     )
@@ -80,14 +80,13 @@ def find_ip(): # IP-based location search using Geocoder
 
 def get_loc(): # Get location-search type
     dict_loc = {
-        #None : "None",
         "coord" : "Coordinates",
         "name" : "Name/Postal code",
         "ip" : "IP address",
     }
 
     in_opt = st.sidebar.radio(
-        label = "Search type",
+        label = "Location search",
         options = dict_loc.keys(),
         format_func = lambda x: dict_loc.get(x),
         horizontal = True,
