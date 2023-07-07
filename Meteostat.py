@@ -11,6 +11,20 @@ from pandas import Series
 from plotly.subplots import make_subplots as subplot
 import plotly.graph_objects as go
 import streamlit as st
+from PIL import Image
+icon = Image.open("./static/icon.png")
+
+st.set_page_config(
+    page_title = "Meteostat",
+    page_icon = icon,
+    layout = "wide",
+    initial_sidebar_state = "expanded",
+    menu_items = {
+        "Get Help" : "https://github.com/OlaMushroom/weather-stats/wiki",
+        "Report a bug" : "https://github.com/OlaMushroom/weather-stats/issues",
+        "About" : "https://meteostat.net"
+    }
+)
 
 wx_code = { # Weather condition codes
     "1" : "Clear",
@@ -137,6 +151,8 @@ with st.form("form"): # Create a form
         submit = st.form_submit_button("Get data!") # Create a submit button
 
     if submit:
+        prog_bar = st.sidebar.progress(0, text = "Starting...0%")
+
         data_json = data_raw.to_json( # type:ignore
             path_or_buf = None,
             orient = "split",
@@ -158,11 +174,7 @@ with st.form("form"): # Create a form
                 if i == "coco": j[c] = wx_code[str(int(j[c]))]
                 data[i].append(j[c])
 
-        rank = {}
-        def ranking(): # Create statistics ranking
-            for n in data[i]:
-                if n == None: return True
-            rank[i] = stats(data[i])
+        prog_bar.progress(25, text = "Processing...25%")
 
         # Create plotly figures:
         fig_temp = go.Figure()
@@ -170,6 +182,12 @@ with st.form("form"): # Create a form
         fig_wind = subplot(specs = [[{"secondary_y": True}]])
         fig_misc = subplot(specs = [[{"secondary_y": True}]])
         fig_wxco = go.Figure()
+
+        rank = {}
+        def ranking(): # Create statistics ranking
+            for n in data[i]:
+                if n == None: return True
+            rank[i] = stats(data[i])
 
         # Process data to dataframe and figures:
         df = {}
@@ -205,6 +223,8 @@ with st.form("form"): # Create a form
             elif i == "coco": fig_wxco.add_trace(param)
 
         st.dataframe(data = df, use_container_width = True) # Display dataframe
+
+        prog_bar.progress(50, text = "Updating...50%")
 
         def fig_update(fig, y1: str): # Update figure
             fig.update_layout(
@@ -301,6 +321,8 @@ with st.form("form"): # Create a form
                 chart(fig_wxco)
                 chart(fig_wxco_freq)    
             
+        prog_bar.progress(75, text = "Finalizing...75%")
+
         # Display figures:
         with tab_temp:
             chart(fig_temp)
@@ -318,7 +340,9 @@ with st.form("form"): # Create a form
             chart(fig_misc)
             rank_show(list_misc)
 
+        prog_bar.progress(100, text = "Done! 100%")
+
 # debug:
 #st.write(st.session_state)
 #st.write(rank)
-#st.write(data)
+st.write(data)
