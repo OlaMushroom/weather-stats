@@ -1,5 +1,7 @@
+meteostat == 1.6.5
 geocoder == 1.38.1
 plotly == 5.15.0
-meteostat == 1.6.5
+folium == 0.14.0
+streamlit-folium == 0.11.1
 streamlit-extras == 0.2.7
 streamlit == 1.24.0

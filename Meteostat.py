@@ -1,21 +1,20 @@
 """Meteostat weather data"""
 # Import modules:
-from meteostat import Point, Hourly, Daily, Monthly
-from main import get_loc, get_date, stats, chart
+from meteostat import Point, Hourly, Daily, Monthly, Normals, units
+from main import get_loc, get_date, stats, chart, geomap
 from collections import Counter
 from json import loads
 from datetime import date, datetime
-#from dateutil.relativedelta import relativedelta as rltvD
+#from dateutil.relativedelta import relativedelta
 from dateutil.parser import isoparse
 from pandas import Series
 from plotly.subplots import make_subplots as subplot
 import plotly.graph_objects as go
-from PIL import Image
+#from PIL import Image
 import streamlit as st
 
 st.set_page_config(
     page_title = "Meteostat",
-    page_icon = Image.open("./static/icon.png"),
     layout = "wide",
     initial_sidebar_state = "expanded",
     menu_items = {
@@ -28,8 +27,8 @@ st.set_page_config(
 wx_code = { # Weather condition codes
     "1" : "Clear",
     "2" : "Fair",
-    "3" : "Cloudy",
-    "4" : "Overcast",
+    "3" : "Cloudy ☁️",
+    "4" : "Overcast 🌥️",
     "5" : "Fog",
     "6" : "Freezing Fog",
     "7" : "Light Rain",
@@ -83,14 +82,16 @@ list_prcp = [ "rhum", "prcp", "snow"]
 list_wind = ["wdir", "wspd", "wpgt"]
 list_misc = ["pres", "tsun"]
 
-def mtst_date(current): # Get date
+def mtst_date( # Get date
+        min: date = date(1973, 1, 1),
+        max: date = date.today(),
+):
     with st.sidebar:
         dt = get_date(
-            start = current,
-            end = current,
-            min = datetime(2000, 1, 1),
-            max = current,
-            key = "date",
+            start = max,
+            end = max,
+            min = min,
+            max = max
         )
 
     return {
@@ -100,246 +101,241 @@ def mtst_date(current): # Get date
 
 lat, long = 0, 0
 
-with st.sidebar:
-    loc = get_loc()
-    if loc != None:
-        lat = loc["lat"]
-        long = loc["long"]
+loc = get_loc()
+if loc != None:
+    lat = loc["lat"]
+    long = loc["long"]
 
-        st.write("Latitude:", lat)
-        st.write("Longitude:", long)
+    st.sidebar.write("Latitude:", lat)
+    st.sidebar.write("Longitude:", long)
 
-with st.form("form"): # Create a form
-    with st.sidebar:      
-        data_opt = st.sidebar.radio(
-            label = "Timescale",
-            options = ("hourly", "daily", "monthly"),
-            format_func = lambda x: x.capitalize(),
-            horizontal = True,
-            key = "data_opt",
-            help = ""
-        )
+    geomap(lat, long)
+    
+dict_data_opt = {
+    "hourly" : "Hourly",
+    "daily" : "Daily",
+    "monthly" : "Monthly (from August 1981)",
+    "normals" : "Climate Normals"
+}
 
-        def get_data(): # Get data
-            if data_opt == "hourly":
-                dt = mtst_date(date.today())
-                return Hourly(
-                    loc = Point(lat, long),
-                    start = dt[0],
-                    end = dt[1]
-                ).fetch()
+data_opt = st.sidebar.radio(
+    label = "Timescale",
+    options = dict_data_opt.keys(),
+    format_func = lambda x: dict_data_opt.get(x),
+    horizontal = True,
+    key = "data_opt",
+    help = ""
+)
 
-            elif data_opt == "daily":
-                dt = mtst_date(date.today())
-                return Daily(
-                    loc = Point(lat, long),
-                    start = dt[0],
-                    end = dt[1]
-                ).fetch()
+def get_data(): # Get data
+    with st.sidebar:
+        if data_opt == "hourly":
+            dt = mtst_date()
+            return Hourly(
+                loc = Point(lat, long),
+                start = dt[0],
+                end = dt[1]
+            ).fetch()
 
-            elif data_opt == "monthly":
-                dt = mtst_date(date(2023, 4, 1))
-                return Monthly(
-                    loc = Point(lat, long),
-                    start = dt[0],
-                    end = dt[1]
-                ).fetch()
-            
-        data_raw = get_data() # Store data
+        elif data_opt == "daily":
+            dt = mtst_date()
+            return Daily(
+                loc = Point(lat, long),
+                start = dt[0],
+                end = dt[1]
+            ).fetch()
 
-        submit = st.form_submit_button("Get data!") # Create a submit button
+        elif data_opt == "monthly":
+            dt = mtst_date(min = date(1981, 8, 1))
 
-    if submit:
-        prog_bar = st.sidebar.progress(0, text = "Starting...0%")
+            return Monthly(
+                loc = Point(lat, long),
+                start = dt[0],
+                end = dt[1]
+            ).fetch()
 
-        data_json = data_raw.to_json( # type:ignore
-            path_or_buf = None,
-            orient = "split",
-            date_format = 'iso',
-            date_unit = 's',
-            indent = 4
-        )
-        data_json = loads(data_json)
+data_raw = get_data() # Store data
 
-        # Reorganize data:
-        data = {}
-        timestamp = []
-        for i in data_json["index"]: timestamp.append(isoparse(i))
+data_json = data_raw.to_json( # type:ignore
+    path_or_buf = None,
+    orient = "split",
+    date_format = 'iso',
+    date_unit = 's',
+    indent = 4
+)
+data_json = loads(data_json)
 
-        for i in data_json["columns"]:
-            data[i] = []
-            c = data_json["columns"].index(i)
-            for j in data_json["data"]:
-                if i == "coco": j[c] = wx_code[str(int(j[c]))]
-                data[i].append(j[c])
+# Reorganize data:
+data = {}
+timestamp = []
+for i in data_json["index"]: timestamp.append(isoparse(i))
 
-        prog_bar.progress(25, text = "Processing...25%")
+for i in data_json["columns"]:
+    data[i] = []
+    c = data_json["columns"].index(i)
+    for j in data_json["data"]:
+        if i == "coco" and j[c] != None: j[c] = wx_code[str(int(j[c]))]
+        data[i].append(j[c])
 
-        # Create plotly figures:
-        fig_temp = go.Figure()
-        fig_prcp = subplot(specs = [[{"secondary_y": True}]])
-        fig_wind = subplot(specs = [[{"secondary_y": True}]])
-        fig_misc = subplot(specs = [[{"secondary_y": True}]])
-        fig_wxco = go.Figure()
+# Create plotly figures:
+fig_temp = go.Figure()
+fig_prcp = subplot(specs = [[{"secondary_y": True}]])
+fig_wind = subplot(specs = [[{"secondary_y": True}]])
+fig_misc = subplot(specs = [[{"secondary_y": True}]])
+fig_wxco = go.Figure()
 
-        rank = {}
-        def ranking(): # Create statistics ranking
-            for n in data[i]:
-                if n == None: return True
-            rank[i] = stats(data[i])
+rank = {}
+def ranking(): # Create statistics ranking
+    for n in data[i]:
+        if n == None: return True
+    rank[i] = stats(data[i])
 
-        # Process data to dataframe and figures:
-        df = {}
-        df["Time"] = Series(timestamp)
-        for i in data:
-            if i != "Time": df[dict_abbr[i]] = Series(data[i])
-            if i != "coco" and len(data[i]) != 0: ranking()
+# Process data to dataframe and figures:
+df = {}
+df["Time"] = Series(timestamp)
+for i in data:
+    if i != "Time": df[dict_abbr[i]] = Series(data[i])
+    if i != "coco" and len(data[i]) != 0: ranking()
 
-            param = go.Scatter(
-                name = dict_abbr[i],
-                x = timestamp,
-                y = data[i],
-                mode = "lines+markers+text"
-            )
+    param = go.Scatter(
+        name = dict_abbr[i],
+        x = timestamp,
+        y = data[i],
+        mode = "lines+markers+text"
+    )
 
-            if i in list_temp: fig_temp.add_trace(param)
+    if i in list_temp: fig_temp.add_trace(param)
 
-            elif any([
-                i == "prcp",
-                i == "snow"
-            ]): fig_prcp.add_trace(param)
-            elif i == "rhum": fig_prcp.add_trace(param, secondary_y = True)
+    elif any([
+        i == "prcp",
+        i == "snow"
+    ]): fig_prcp.add_trace(param)
+    elif i == "rhum": fig_prcp.add_trace(param, secondary_y = True)
 
-            elif any([
-                i == "wspd",
-                i == "wpgt",
-            ]): fig_wind.add_trace(param)
-            elif i == "wdir": fig_wind.add_trace(param, secondary_y = True)
+    elif any([
+        i == "wspd",
+        i == "wpgt",
+    ]): fig_wind.add_trace(param)
+    elif i == "wdir": fig_wind.add_trace(param, secondary_y = True)
 
-            elif i == "pres": fig_misc.add_trace(param)
-            elif i == "tsun": fig_misc.add_trace(param, secondary_y = True)
+    elif i == "pres": fig_misc.add_trace(param)
+    elif i == "tsun": fig_misc.add_trace(param, secondary_y = True)
 
-            elif i == "coco": fig_wxco.add_trace(param)
+    elif i == "coco": fig_wxco.add_trace(param)
 
-        st.dataframe(data = df, use_container_width = True) # Display dataframe
+st.dataframe(data = df, use_container_width = True) # Display dataframe
 
-        prog_bar.progress(50, text = "Updating...50%")
+def fig_update(fig, y1: str): # Update figure
+    fig.update_layout(
+        title = "Chart",
+        xaxis_title = "Time",
+        yaxis_title = y1,
+        showlegend = True
+    )
+    fig.update_xaxes(rangeslider_visible = True) # Update figure with x-axis range slider
 
-        def fig_update(fig, y1: str): # Update figure
-            fig.update_layout(
-                title = "Chart",
-                xaxis_title = "Time",
-                yaxis_title = y1,
-                showlegend = True
-            )
-            fig.update_xaxes(rangeslider_visible = True) # Update figure with x-axis range slider
+def y2(fig, text): fig.update_yaxes(title_text = text, secondary_y = True) # Update figure with two y-axes
 
-        def y2(fig, text): fig.update_yaxes(title_text = text, secondary_y = True) # Update figure with two y-axes
+def rank_show(set): # Display statistics
+    for data in rank:
+        if data in set:
+            st.divider()
+            st.subheader(dict_abbr[data])
+            for stat in rank[data]:
+                if isinstance(rank[data][stat], (int, float, str)): st.metric(dict_abbr[stat], rank[data][stat]) # Display metrics of statistics
 
-        def rank_show(set): # Display statistics
-            for data in rank:
-                if data in set:
-                    st.divider()
-                    st.subheader(dict_abbr[data])
-                    for stat in rank[data]:
-                        if isinstance(rank[data][stat], (int, float, str)): st.metric(dict_abbr[stat], rank[data][stat]) # Display metrics of statistics
+            with st.expander("Frequency"):
+                # Display frequency dataframe:
+                st.dataframe(
+                    data = rank[data]["freq"],
+                    use_container_width = True,
+                    column_config = {
+                        "_index" : st.column_config.Column(
+                            label = "Value",
+                            help = "",
+                        ),
 
-                    with st.expander("Frequency"):
-                        # Display frequency dataframe:
-                        st.dataframe(
-                            data = rank[data]["freq"],
-                            use_container_width = True,
-                            column_config = {
-                                "_index" : st.column_config.Column(
-                                    label = "Value",
-                                    help = "",
-                                ),
-
-                                "value" : st.column_config.Column(
-                                    label = "Frequency",
-                                    help = "",
-                                )
-                            }
+                        "value" : st.column_config.Column(
+                            label = "Frequency",
+                            help = "",
                         )
-                        
-                        # Create frequency figure:
-                        fig_freq = go.Figure(data = [go.Bar(
-                                x = list(rank[data]["freq"].keys()),
-                                y = list(rank[data]["freq"].values()),
-                                textposition = "auto",
-                            )])
+                    }
+                )
+                
+                # Create frequency figure:
+                fig_freq = go.Figure(data = [go.Bar(
+                        x = list(rank[data]["freq"].keys()),
+                        y = list(rank[data]["freq"].values()),
+                        textposition = "auto",
+                    )])
 
-                        fig_freq.update_layout(
-                            title = "Chart",
-                            xaxis_title = "Value",
-                            yaxis_title = "Frequency"
-                        )
-                        fig_freq.update_xaxes(rangeslider_visible = True)
-                        chart(fig_freq) # Display frequency figure
+                fig_freq.update_layout(
+                    title = "Chart",
+                    xaxis_title = "Value",
+                    yaxis_title = "Frequency"
+                )
+                fig_freq.update_xaxes(rangeslider_visible = True)
+                chart(fig_freq) # Display frequency figure
 
-        # Update figures:
-        fig_update(fig_temp, "°C")
+# Update figures:
+fig_update(fig_temp, "°C")
 
-        fig_update(fig_prcp, "mm")
+fig_update(fig_prcp, "mm")
 
-        fig_update(fig_wind, "km/h")
+fig_update(fig_wind, "km/h")
 
-        fig_update(fig_misc, "hPa")
-        y2(fig_misc, "minutes")
+fig_update(fig_misc, "hPa")
+y2(fig_misc, "minutes")
 
-        tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([ # Create tabs to organize & display data
-            "Temperature",
-            "Precipitation",
-            "Wind data",
-            "Miscellaneous",
-            "Weather conditions"
-        ])
+tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([ # Create tabs to organize & display data
+    "Temperature",
+    "Precipitation",
+    "Wind data",
+    "Miscellaneous",
+    "Weather conditions"
+])
 
-        if data_opt == "hourly": # More updates to figures when current data timescale is hourly
-            y2(fig_prcp, "%")
-            if data_opt == "daily": y2(fig_wind, "°")
-            fig_update(fig_wxco, "Conditions")
-            
-            # Create frequency figure for weather conditions:
-            wxco_freq = Counter(data["coco"])
-            fig_wxco_freq = go.Figure(data = [go.Bar(
-                    x = list(wxco_freq.keys()),
-                    y = list(wxco_freq.values()),
-                    textposition = "auto",
-            )])
+if data_opt == "hourly": # More updates to figures when current data timescale is hourly
+    y2(fig_prcp, "%")
+    if data_opt == "daily": y2(fig_wind, "°")
+    fig_update(fig_wxco, "Conditions")
+    
+    # Create frequency figure for weather conditions:
+    wxco_freq = Counter(data["coco"])
+    fig_wxco_freq = go.Figure(data = [go.Bar(
+            x = list(wxco_freq.keys()),
+            y = list(wxco_freq.values()),
+            textposition = "auto",
+    )])
 
-            fig_wxco_freq.update_layout(
-                title = "Frequency",
-                xaxis_title = "Value",
-                yaxis_title = "Frequency"
-            )
-            fig_wxco_freq.update_xaxes(rangeslider_visible = True)
+    fig_wxco_freq.update_layout(
+        title = "Frequency",
+        xaxis_title = "Value",
+        yaxis_title = "Frequency"
+    )
+    fig_wxco_freq.update_xaxes(rangeslider_visible = True)
 
-            # Display figures for weather conditions:
-            with tab_wxco:
-                chart(fig_wxco)
-                chart(fig_wxco_freq)    
-            
-        prog_bar.progress(75, text = "Finalizing...75%")
+    # Display figures for weather conditions:
+    with tab_wxco:
+        chart(fig_wxco)
+        chart(fig_wxco_freq)    
 
-        # Display figures:
-        with tab_temp:
-            chart(fig_temp)
-            rank_show(list_temp)
+# Display figures:
+with tab_temp:
+    chart(fig_temp)
+    rank_show(list_temp)
 
-        with tab_prcp:
-            chart(fig_prcp)
-            rank_show(list_prcp)
+with tab_prcp:
+    chart(fig_prcp)
+    rank_show(list_prcp)
 
-        with tab_wind:
-            chart(fig_wind)
-            rank_show(list_wind)
+with tab_wind:
+    chart(fig_wind)
+    rank_show(list_wind)
 
-        with tab_misc:
-            chart(fig_misc)
-            rank_show(list_misc)
-
-        prog_bar.progress(100, text = "Done! 100%")
+with tab_misc:
+    chart(fig_misc)
+    rank_show(list_misc)
 
 # debug:
 #st.write(st.session_state)

@@ -3,8 +3,10 @@ from collections import Counter
 from statistics import fmean, median_low, median_high
 from requests import get
 from geocoder import ip # Module for searching location with IP address
+import folium
 import streamlit as st
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
+from streamlit_folium import st_folium
 
 '''def ss_chk(param: str, var):
     for i in ss:
@@ -23,28 +25,28 @@ def find_coord(): # Get coordinates
         min_value = -90.0,
         max_value = 90.0,
         value = 0.0,
-        step = 0.0001,
-        format = "%.4f",
+        step = 0.00001,
+        format = "%.5f",
         key = "lat",
         help = "Use negative value for South"
     )
-    lat = round(lat, 4)
+    lat = round(lat, 5)
 
     long = st.sidebar.number_input(
         label = "Longitude",
         min_value = -180.0,
         max_value = 180.0,
         value = 0.0,
-        step = 0.0001,
-        format = "%.4f",
+        step = 0.00001,
+        format = "%.5f",
         key = "long",
         help = "Use negative value for West"
     )
-    long = round(long, 4)
+    long = round(long, 5)
 
     return {
-        "lat": lat,
-        "long": long,
+        "lat" : lat,
+        "long" : long,
     }
 
 def find_name(): # Location search based on Name/Postal Code using Open-Meteo Geocoding API
@@ -66,7 +68,7 @@ def find_ip(): # IP-based location search using Geocoder
     input = st.sidebar.text_input(
         label = "IP address",
         key = "ip",
-        help = 'If you want to get your current IP address, you can type "me" in the box.'
+        help = ""
     )
             
     if input != None and input != "":
@@ -77,12 +79,33 @@ def find_ip(): # IP-based location search using Geocoder
             "lat" : g.latlng[0],
             "long" : g.latlng[1]
         }
+    
+def find_map():
+    m = folium.Map(
+        location=[0, 0],
+        zoom_start = 1
+    )
+    m.add_child(folium.LatLngPopup())
+
+    with st.sidebar:
+        st_data = st_folium(
+            fig = m,
+            height = 512,
+            width = 512
+        )
+
+    if st_data["last_clicked"] != None:
+        return {
+            "lat" : st_data["last_clicked"]["lat"],
+            "long" : st_data["last_clicked"]["lng"]
+        }
 
 def get_loc(): # Get location-search type
     dict_loc = {
         "coord" : "Coordinates",
         "name" : "Name/Postal code",
         "ip" : "IP address",
+        "map" : "Map",
     }
 
     in_opt = st.sidebar.radio(
@@ -98,10 +121,11 @@ def get_loc(): # Get location-search type
     if in_opt == "coord": return find_coord()
     elif in_opt == "name": return find_name()
     elif in_opt == "ip": return find_ip()
+    elif in_opt == "map": return find_map()
 
-def get_date(start, end, min, max, key: str): # Get a range of date
+def get_date(start, end, min, max, key: str | None = None): # Get a range of date
     date = date_range(
-        title = "Select a date range",
+        title = "Select a range of date",
         default_start = start,
         default_end = end,
         min_date = min,
@@ -116,9 +140,9 @@ def get_date(start, end, min, max, key: str): # Get a range of date
 
 def stats(data): # Return statistics
     return {
-        "mean" : fmean(data),
-        "med_l" : median_low(data),
-        "med_h" : median_high(data),
+        "mean" : round(fmean(data), 10),
+        "med_l" : round(median_low(data), 10),
+        "med_h" : round(median_high(data), 10),
         "freq" : Counter(data)
     }
 
@@ -128,4 +152,21 @@ def chart(fig): # Display plotly chart
         use_container_width = True,
         sharing = 'streamlit',
         theme = 'streamlit'
+    )
+
+def geomap(lat, long):
+    m = folium.Map(
+        location=[lat, long],
+        zoom_start = 10
+    )
+    folium.Marker(
+        location = [lat, long],
+        popup = "Selected location"
+    ).add_to(m)
+
+    return st_folium(
+        fig = m,
+        height = 512,
+        width = 1024,
+        returned_objects = []
     )
