@@ -173,5 +173,5 @@ def geomap(lat, long):
         fig = m,
         height = 512,
         width = 1024,
-        #returned_objects = []
+        returned_objects = []
     )
