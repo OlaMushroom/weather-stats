@@ -373,4 +373,4 @@ buymeacoffee(
 # debug:
 #st.write(st.session_state)
 #st.write(rank)
-st.write(data)
+#st.write(data)
