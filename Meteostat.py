@@ -2,16 +2,20 @@
 # Import modules:
 from meteostat import Point, Hourly, Daily, Monthly, Normals, units
 from main import get_loc, get_date, stats, chart, geomap
+
 from collections import Counter
 from json import loads
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta
 from dateutil.parser import isoparse
+
 from pandas import Series
 from plotly.subplots import make_subplots as subplot
 import plotly.graph_objects as go
 #from PIL import Image
+
 import streamlit as st
+from streamlit_extras.buy_me_a_coffee import button as buymeacoffee
 
 st.set_page_config(
     page_title = "Meteostat",
@@ -20,38 +24,38 @@ st.set_page_config(
     menu_items = {
         "Get Help" : "https://github.com/OlaMushroom/weather-stats/wiki",
         "Report a bug" : "https://github.com/OlaMushroom/weather-stats/issues",
-        "About" : "Data provider: https://meteostat.net"
+        "About" : "Data provider: [Meteostat](https://meteostat.net) — Map library: [Folium](https://python-visualization.github.io/folium)"
     }
 )
 
 wx_code = { # Weather condition codes
-    "1" : "Clear",
-    "2" : "Fair",
-    "3" : "Cloudy ☁️",
-    "4" : "Overcast 🌥️",
-    "5" : "Fog",
-    "6" : "Freezing Fog",
-    "7" : "Light Rain",
-    "8" : "Rain",
-    "9" : "Heavy Rain",
-    "10" : "Freezing Rain",
-    "11" : "Heavy Freezing Rain",
-    "12" : "Sleet",
-    "13" : "Heavy Sleet",
-    "14" : "Light Snowfall",
-    "15" : "Snowfall",
-    "16" : "Heavy Snowfall",
-    "17" : "Rain Shower",
-    "18" : "Heavy Rain Shower",
-    "19" : "Sleet Shower",
-    "20" : "Heavy Sleet Shower",
-    "21" : "Snow Shower",
-    "22" : "Heavy Snow Shower",
-    "23" : "Lightning",
-    "24" : "Hail",
-    "25" : "Thunderstorm",
-    "26" : "Heavy Thunderstorm",
-    "27" : "Storm",
+    "1" : ["Clear", ""],
+    "2" : ["Fair", ""],
+    "3" : ["Cloudy ☁️", ""],
+    "4" : ["Overcast", "./static/overcast.png"],
+    "5" : ["Fog", "./static/fog.png"],
+    "6" : ["Freezing Fog", "./static/freezing_fog.png"],
+    "7" : ["Light Rain", "./static/rain.png"],
+    "8" : ["Rain", "./static/rain.png"],
+    "9" : ["Heavy Rain", "./static/heavy_rain.png"],
+    "10" : ["Freezing Rain", "./static/freezing_rain.png"],
+    "11" : ["Heavy Freezing Rain", "./static/freezing_rain.png"],
+    "12" : ["Sleet", "./static/sleet.png"],
+    "13" : ["Heavy Sleet", "./static/sleet.png"],
+    "14" : ["Light Snowfall", ""],
+    "15" : ["Snowfall", ""],
+    "16" : ["Heavy Snowfall", ""],
+    "17" : ["Rain Shower", ""],
+    "18" : ["Heavy Rain Shower", ""],
+    "19" : ["Sleet Shower", ""],
+    "20" : ["Heavy Sleet Shower", ""],
+    "21" : ["Snow Shower", ""],
+    "22" : ["Heavy Snow Shower", ""],
+    "23" : ["Lightning", ""],
+    "24" : ["Hail", ""],
+    "25" : ["Thunderstorm", ""],
+    "26" : ["Heavy Thunderstorm", ""],
+    "27" : ["Storm", ""],
 }
 
 dict_abbr = { # Abbreviations
@@ -106,16 +110,14 @@ if loc != None:
     lat = loc["lat"]
     long = loc["long"]
 
-    st.sidebar.write("Latitude:", lat)
-    st.sidebar.write("Longitude:", long)
-
+    st.write("Latitude:", lat, "—", "Longitude:", long)
     geomap(lat, long)
     
 dict_data_opt = {
     "hourly" : "Hourly",
     "daily" : "Daily",
     "monthly" : "Monthly (from August 1981)",
-    "normals" : "Climate Normals"
+    #"normals" : "Climate Normals"
 }
 
 data_opt = st.sidebar.radio(
@@ -168,14 +170,19 @@ data_json = loads(data_json)
 # Reorganize data:
 data = {}
 timestamp = []
+wx_img = []
+
 for i in data_json["index"]: timestamp.append(isoparse(i))
 
 for i in data_json["columns"]:
     data[i] = []
-    c = data_json["columns"].index(i)
+    col = data_json["columns"].index(i)
     for j in data_json["data"]:
-        if i == "coco" and j[c] != None: j[c] = wx_code[str(int(j[c]))]
-        data[i].append(j[c])
+        if i == "coco" and j[col] != None:
+            k = str(int(j[col]))
+            j[col] = wx_code[k][0]
+            wx_img.append(wx_code[k][1])
+        data[i].append(j[col])
 
 # Create plotly figures:
 fig_temp = go.Figure()
@@ -196,6 +203,7 @@ df["Time"] = Series(timestamp)
 for i in data:
     if i != "Time": df[dict_abbr[i]] = Series(data[i])
     if i != "coco" and len(data[i]) != 0: ranking()
+    elif i == "coco": df["IMG"] = Series(wx_img)
 
     param = go.Scatter(
         name = dict_abbr[i],
@@ -223,7 +231,11 @@ for i in data:
 
     elif i == "coco": fig_wxco.add_trace(param)
 
-st.dataframe(data = df, use_container_width = True) # Display dataframe
+st.dataframe( # Display dataframe
+    data = df,
+    use_container_width = True,
+    column_config = {"IMG" : st.column_config.ImageColumn("Image")}
+)
 
 def fig_update(fig, y1: str): # Update figure
     fig.update_layout(
@@ -297,7 +309,6 @@ tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([ # Create tabs to or
 
 if data_opt == "hourly": # More updates to figures when current data timescale is hourly
     y2(fig_prcp, "%")
-    if data_opt == "daily": y2(fig_wind, "°")
     fig_update(fig_wxco, "Conditions")
     
     # Create frequency figure for weather conditions:
@@ -320,6 +331,18 @@ if data_opt == "hourly": # More updates to figures when current data timescale i
         chart(fig_wxco)
         chart(fig_wxco_freq)    
 
+isWDIR = data_opt == "hourly" or data_opt == "daily"
+
+if isWDIR:
+    y2(fig_wind, "°")
+
+#    fig_wdir = go.Figure(data = go.Scatterpolar(
+#        r = list(rank["wdir"]["freq"].values()),
+#        theta = list(rank["wdir"]["freq"].keys()),
+#        mode = "markers",
+#    ))
+#    fig_wdir.update_layout(showlegend = True)
+
 # Display figures:
 with tab_temp:
     chart(fig_temp)
@@ -331,13 +354,23 @@ with tab_prcp:
 
 with tab_wind:
     chart(fig_wind)
+    #if isWDIR: chart(fig_wdir)
     rank_show(list_wind)
 
 with tab_misc:
     chart(fig_misc)
     rank_show(list_misc)
 
+buymeacoffee(
+    username = "olamushroom",
+    text = "Coffee, please!",
+    emoji = "☕",
+    font = "Poppins",
+    width = 300,
+    floating = True
+)
+
 # debug:
 #st.write(st.session_state)
 #st.write(rank)
-#st.write(data)
+st.write(data)

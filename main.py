@@ -1,11 +1,14 @@
 """Main module"""
 from collections import Counter
 from statistics import fmean, median_low, median_high
+
 from requests import get
-from geocoder import ip # Module for searching location with IP address
-import folium
+#from geocoder import ip # Module for searching location with IP address
+
 import streamlit as st
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
+
+import folium
 from streamlit_folium import st_folium
 
 '''def ss_chk(param: str, var):
@@ -25,28 +28,28 @@ def find_coord(): # Get coordinates
         min_value = -90.0,
         max_value = 90.0,
         value = 0.0,
-        step = 0.00001,
-        format = "%.5f",
+        step = 0.001,
+        format = "%.3f",
         key = "lat",
         help = "Use negative value for South"
     )
-    lat = round(lat, 5)
+    lat = round(lat, 3)
 
     long = st.sidebar.number_input(
         label = "Longitude",
         min_value = -180.0,
         max_value = 180.0,
         value = 0.0,
-        step = 0.00001,
-        format = "%.5f",
+        step = 0.001,
+        format = "%.3f",
         key = "long",
         help = "Use negative value for West"
     )
-    long = round(long, 5)
+    long = round(long, 3)
 
     return {
         "lat" : lat,
-        "long" : long,
+        "long" : long
     }
 
 def find_name(): # Location search based on Name/Postal Code using Open-Meteo Geocoding API
@@ -57,14 +60,16 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
     )
 
     if input != None and input != "":
-        loc = get("http://geocoding-api.open-meteo.com/v1/search?name=" + input + "&count=1&language=en&format=json").json()["results"][0] 
+        loc = get("http://geocoding-api.open-meteo.com/v1/search?name=" + input + "&count=1&language=en&format=json").json()["results"][0]
+
         st.subheader(loc["name"] + ", " + loc["admin1"] + ", " + loc["country"])
+
         return {
             "lat" : loc["latitude"],
             "long" : loc["longitude"]
         }
 
-def find_ip(): # IP-based location search using Geocoder
+'''def find_ip(): # IP-based location search using Geocoder
     input = st.sidebar.text_input(
         label = "IP address",
         key = "ip",
@@ -78,7 +83,7 @@ def find_ip(): # IP-based location search using Geocoder
         return {
             "lat" : g.latlng[0],
             "long" : g.latlng[1]
-        }
+        }'''
     
 def find_map():
     m = folium.Map(
@@ -104,7 +109,7 @@ def get_loc(): # Get location-search type
     dict_loc = {
         "coord" : "Coordinates",
         "name" : "Name/Postal code",
-        "ip" : "IP address",
+        #"ip" : "IP address",
         "map" : "Map",
     }
 
@@ -120,7 +125,7 @@ def get_loc(): # Get location-search type
     
     if in_opt == "coord": return find_coord()
     elif in_opt == "name": return find_name()
-    elif in_opt == "ip": return find_ip()
+    #elif in_opt == "ip": return find_ip()
     elif in_opt == "map": return find_map()
 
 def get_date(start, end, min, max, key: str | None = None): # Get a range of date
@@ -168,5 +173,5 @@ def geomap(lat, long):
         fig = m,
         height = 512,
         width = 1024,
-        returned_objects = []
+        #returned_objects = []
     )
