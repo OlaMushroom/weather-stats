@@ -42,9 +42,9 @@ wx_code = { # Weather condition codes
     "11" : ["Heavy Freezing Rain", "app/static/freezing_rain.png"],
     "12" : ["Sleet", "app/static/sleet.png"],
     "13" : ["Heavy Sleet", "app/static/sleet.png"],
-    "14" : ["Light Snowfall", ""],
-    "15" : ["Snowfall", ""],
-    "16" : ["Heavy Snowfall", ""],
+    "14" : ["Light Snowfall", "app/static/snowfall.png"],
+    "15" : ["Snowfall", "app/static/snowfall.png"],
+    "16" : ["Heavy Snowfall", "app/static/heavy_snowfall.png"],
     "17" : ["Rain Shower", ""],
     "18" : ["Heavy Rain Shower", ""],
     "19" : ["Sleet Shower", ""],
@@ -363,7 +363,7 @@ with tab_misc:
 
 buymeacoffee(
     username = "olamushroom",
-    text = "Coffee, please!",
+    text = "Coffee, please?",
     emoji = "☕",
     font = "Poppins",
     width = 300,

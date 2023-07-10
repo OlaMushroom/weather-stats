@@ -1,4 +1,5 @@
 """Main module"""
+from random import uniform
 from collections import Counter
 from statistics import fmean, median_low, median_high
 
@@ -46,6 +47,10 @@ def find_coord(): # Get coordinates
         help = "Use negative value for West"
     )
     long = round(long, 3)
+
+    if st.sidebar.button(label = "Get random coordinates"):
+        lat = uniform(-90, 90)
+        long = uniform(-180, 180)
 
     return {
         "lat" : lat,
