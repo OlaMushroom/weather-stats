@@ -1,23 +1,24 @@
 """Meteostat weather data"""
 # Import modules:
-from meteostat import Point, Hourly, Daily, Monthly, Normals, units
+from meteostat import Point, Hourly, Daily, Monthly, units
 from main import get_loc, get_date, stats, chart, geomap
 
 from collections import Counter
 from json import loads
+
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta
 from dateutil.parser import isoparse
 
 from pandas import Series
-from plotly.subplots import make_subplots as subplot
+
 import plotly.graph_objects as go
-#from PIL import Image
+from plotly.subplots import make_subplots as subplot
 
 import streamlit as st
 from streamlit_extras.buy_me_a_coffee import button as buymeacoffee
 
-st.set_page_config(
+st.set_page_config( # Page configuration
     page_title = "Meteostat",
     layout = "wide",
     initial_sidebar_state = "expanded",
@@ -31,7 +32,7 @@ st.set_page_config(
 wx_code = { # Weather condition codes
     "1" : ["Clear", ""],
     "2" : ["Fair", ""],
-    "3" : ["Cloudy ☁️", ""],
+    "3" : ["Cloudy", ""],
     "4" : ["Overcast", "app/static/overcast.png"],
     "5" : ["Fog", "app/static/fog.png"],
     "6" : ["Freezing Fog", "app/static/freezing_fog.png"],
@@ -59,7 +60,6 @@ wx_code = { # Weather condition codes
 }
 
 dict_abbr = { # Abbreviations
-    #"station" : "Station",
     "temp" : "Temperature (°C)",
     "tavg" : "Average temperature (°C)",
     "tmin" : "Minimum temperature (°C)",
@@ -156,9 +156,7 @@ def get_data(): # Get data
                 end = dt[1]
             ).fetch()
 
-data_raw = get_data() # Store data
-
-data_json = data_raw.to_json( # type:ignore
+data_json = get_data().to_json(
     path_or_buf = None,
     orient = "split",
     date_format = 'iso',
@@ -234,7 +232,10 @@ for i in data:
 st.dataframe( # Display dataframe
     data = df,
     use_container_width = True,
-    column_config = {"IMG" : st.column_config.ImageColumn("Image")}
+    column_config = {
+        "Time" : st.column_config.DatetimeColumn("Time"),
+        "IMG" : st.column_config.ImageColumn("Image")
+    }
 )
 
 def fig_update(fig, y1: str): # Update figure
@@ -276,10 +277,10 @@ def rank_show(set): # Display statistics
                 
                 # Create frequency figure:
                 fig_freq = go.Figure(data = [go.Bar(
-                        x = list(rank[data]["freq"].keys()),
-                        y = list(rank[data]["freq"].values()),
-                        textposition = "auto",
-                    )])
+                    x = list(rank[data]["freq"].keys()),
+                    y = list(rank[data]["freq"].values()),
+                    textposition = "auto",
+                )])
 
                 fig_freq.update_layout(
                     title = "Chart",
@@ -307,8 +308,12 @@ tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([ # Create tabs to or
     "Weather conditions"
 ])
 
+isWDIR = data_opt == "hourly" or data_opt == "daily"
+
 if data_opt == "hourly": # More updates to figures when current data timescale is hourly
     y2(fig_prcp, "%")
+    if isWDIR: y2(fig_wind, "°")
+
     fig_update(fig_wxco, "Conditions")
     
     # Create frequency figure for weather conditions:
@@ -331,18 +336,6 @@ if data_opt == "hourly": # More updates to figures when current data timescale i
         chart(fig_wxco)
         chart(fig_wxco_freq)    
 
-isWDIR = data_opt == "hourly" or data_opt == "daily"
-
-if isWDIR:
-    y2(fig_wind, "°")
-
-#    fig_wdir = go.Figure(data = go.Scatterpolar(
-#        r = list(rank["wdir"]["freq"].values()),
-#        theta = list(rank["wdir"]["freq"].keys()),
-#        mode = "markers",
-#    ))
-#    fig_wdir.update_layout(showlegend = True)
-
 # Display figures:
 with tab_temp:
     chart(fig_temp)
@@ -354,7 +347,35 @@ with tab_prcp:
 
 with tab_wind:
     chart(fig_wind)
-    #if isWDIR: chart(fig_wdir)
+
+    if isWDIR and "wdir" in rank:
+        l = rank["wdir"]["freq"]
+        v = list(l.values())
+
+        fig_wdir = go.Figure(data = go.Barpolar(
+            r = v,
+            theta = list(l.keys()),
+            width = v,
+            marker_line_color = "white",
+            marker_line_width = 1,
+            opacity = 0.5
+        ))
+
+        fig_wdir.update_layout(
+            title = "Polar chart for wind direction",
+            template = "plotly_dark",
+            polar = {
+                #"angularaxis_categoryarray" : ["d", "a", "c", "b"],
+                "angularaxis" : {
+                    "tickfont_size" : 15,
+                    "rotation" : 90,
+                    "direction" : "clockwise"
+                }
+            }
+        )
+
+        chart(fig_wdir)
+
     rank_show(list_wind)
 
 with tab_misc:

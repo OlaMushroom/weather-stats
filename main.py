@@ -4,7 +4,7 @@ from collections import Counter
 from statistics import fmean, median_low, median_high
 
 from requests import get
-#from geocoder import ip # Module for searching location with IP address
+from geocoder import ip # Module for searching location with IP address
 
 import streamlit as st
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
@@ -13,9 +13,9 @@ import folium
 from streamlit_folium import st_folium
 
 '''def ss_chk(param: str, var):
-    for i in ss:
-        key = ss[i]["key"]
-        val = ss[i]["val"]
+    for i in dict_ss:
+        key = dict_ss[i]["key"]
+        val = dict_ss[i]["val"]
         if key not in st.session_state: st.session_state[key] = val
         elif key in st.session_state:
             if var != val and var != st.session_state[param]:
@@ -49,8 +49,8 @@ def find_coord(): # Get coordinates
     long = round(long, 3)
 
     if st.sidebar.button(label = "Get random coordinates"):
-        lat = uniform(-90, 90)
-        long = uniform(-180, 180)
+        lat = round(uniform(-90, 90), 5)
+        long = round(uniform(-180, 180), 5)
 
     return {
         "lat" : lat,
@@ -74,7 +74,7 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
             "long" : loc["longitude"]
         }
 
-'''def find_ip(): # IP-based location search using Geocoder
+def find_ip(): # IP-based location search using Geocoder
     input = st.sidebar.text_input(
         label = "IP address",
         key = "ip",
@@ -83,16 +83,17 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
             
     if input != None and input != "":
         g = ip(input)
-        #g.ip
+
         st.subheader(g.city + ", " + g.state + ", " + g.country)
+
         return {
             "lat" : g.latlng[0],
             "long" : g.latlng[1]
-        }'''
+        }
     
 def find_map():
     m = folium.Map(
-        location=[0, 0],
+        location = [0, 0],
         zoom_start = 1
     )
     m.add_child(folium.LatLngPopup())
@@ -130,7 +131,7 @@ def get_loc(): # Get location-search type
     
     if in_opt == "coord": return find_coord()
     elif in_opt == "name": return find_name()
-    #elif in_opt == "ip": return find_ip()
+    elif in_opt == "ip": return find_ip()
     elif in_opt == "map": return find_map()
 
 def get_date(start, end, min, max, key: str | None = None): # Get a range of date
@@ -166,7 +167,7 @@ def chart(fig): # Display plotly chart
 
 def geomap(lat, long):
     m = folium.Map(
-        location=[lat, long],
+        location = [lat, long],
         zoom_start = 10
     )
     folium.Marker(

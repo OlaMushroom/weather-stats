@@ -51,7 +51,7 @@ gatherUsageStats = false
 
 # The preset Streamlit theme that your custom theme inherits from.
 # One of "light" or "dark".
-# base = "dark"
+base = "dark"
 
 # Primary accent color for interactive elements.
-# primaryColor = "#00C0F2"
+primaryColor = "#00C0F2"
