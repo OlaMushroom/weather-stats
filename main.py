@@ -1,5 +1,5 @@
 """Main module"""
-from random import uniform
+from random import seed, uniform
 from collections import Counter
 from statistics import fmean, median_low, median_high
 
@@ -48,7 +48,20 @@ def find_coord(): # Get coordinates
     )
     long = round(long, 3)
 
-    if st.sidebar.button(label = "Get random coordinates"):
+    st.sidebar.divider()
+    st.sidebar.subheader("RNG")
+
+    if st.sidebar.checkbox(label = "Enable seed"):
+        seed(st.sidebar.number_input(
+            label = "Seed",
+            value = 0,
+            help = "Please remember or note down the seed(s) for later use if you want."
+        ))
+
+    if st.sidebar.button(
+        label = "I'm Feeling Lucky!",
+        help = "Get random coordinates."
+    ):
         lat = round(uniform(-90, 90), 5)
         long = round(uniform(-180, 180), 5)
 
@@ -152,8 +165,8 @@ def get_date(start, end, min, max, key: str | None = None): # Get a range of dat
 def stats(data): # Return statistics
     return {
         "mean" : round(fmean(data), 10),
-        "med_l" : round(median_low(data), 10),
-        "med_h" : round(median_high(data), 10),
+        "medl" : round(median_low(data), 10),
+        "medh" : round(median_high(data), 10),
         "freq" : Counter(data)
     }
 

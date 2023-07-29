@@ -60,43 +60,36 @@ wx_code = { # Weather condition codes
 }
 
 dict_abbr = { # Abbreviations
-    "temp" : "Temperature (°C)",
-    "tavg" : "Average temperature (°C)",
-    "tmin" : "Minimum temperature (°C)",
-    "tmax" : "Maximum temperature (°C)",
-    "dwpt" : "Dew point (°C)",
-    "rhum" : "Relative humidity (%)",
-    "prcp" : "Precipitation (mm)",
-    "snow" : "Snow depth (mm)",
-    "wdir" : "Wind direction (°)",
-    "wspd" : "Wind speed (km/h)",
-    "wpgt" : "Peak wind gust (km/h)",
-    "pres" : "Average sea-level air pressure (hPa)",
-    "tsun" : "Sunshine total (minutes)",
+    "temp" : "Temperature",
+    "tavg" : "Average temperature",
+    "tmin" : "Minimum temperature",
+    "tmax" : "Maximum temperature",
+    "dwpt" : "Dew point",
+    "rhum" : "Relative humidity",
+    "prcp" : "Precipitation",
+    "snow" : "Snow depth",
+    "wdir" : "Wind direction",
+    "wspd" : "Wind speed",
+    "wpgt" : "Peak wind gust",
+    "pres" : "Average sea-level air pressure",
+    "tsun" : "Sunshine total",
     "coco" : "Weather condition",
     "mean" : "Mean",
-    "med_l" : "Low median",
-    "med_h" : "High median",
-    "mode" : "Mode",
+    "medl" : "Low median",
+    "medh" : "High median",
     "freq" : "Frequency",
 }
 
-list_temp = ["temp", "tavg", "tmin", "tmax", "dwpt"]
-list_prcp = [ "rhum", "prcp", "snow"]
-list_wind = ["wdir", "wspd", "wpgt"]
-list_misc = ["pres", "tsun"]
-
 def mtst_date( # Get date
-        min: date = date(1973, 1, 1),
-        max: date = date.today(),
+    min: date = date(1973, 1, 1),
+    max: date = date.today(),
 ):
-    with st.sidebar:
-        dt = get_date(
-            start = max,
-            end = max,
-            min = min,
-            max = max
-        )
+    with st.sidebar: dt = get_date(
+        start = max,
+        end = max,
+        min = min,
+        max = max
+    )
 
     return {
         0 : datetime.combine(dt["start_date"], datetime.min.time()),
@@ -104,7 +97,6 @@ def mtst_date( # Get date
     }
 
 lat, long = 0, 0
-
 loc = get_loc()
 if loc != None:
     lat = loc["lat"]
@@ -112,11 +104,13 @@ if loc != None:
 
     st.write("Latitude:", lat, "—", "Longitude:", long)
     geomap(lat, long)
+
+st.sidebar.divider()
     
 dict_data_opt = {
     "hourly" : "Hourly",
     "daily" : "Daily",
-    "monthly" : "Monthly (from August 1981)",
+    "monthly" : "Monthly",
     #"normals" : "Climate Normals"
 }
 
@@ -131,32 +125,27 @@ data_opt = st.sidebar.radio(
 
 def get_data(): # Get data
     with st.sidebar:
-        if data_opt == "hourly":
-            dt = mtst_date()
-            return Hourly(
-                loc = Point(lat, long),
-                start = dt[0],
-                end = dt[1]
-            ).fetch()
+        dt = mtst_date()
 
-        elif data_opt == "daily":
-            dt = mtst_date()
-            return Daily(
-                loc = Point(lat, long),
-                start = dt[0],
-                end = dt[1]
-            ).fetch()
+        if data_opt == "hourly": return Hourly(
+            loc = Point(lat, long),
+            start = dt[0],
+            end = dt[1]
+        )
 
-        elif data_opt == "monthly":
-            dt = mtst_date(min = date(1981, 8, 1))
+        elif data_opt == "daily": return Daily(
+            loc = Point(lat, long),
+            start = dt[0],
+            end = dt[1]
+        )
 
-            return Monthly(
-                loc = Point(lat, long),
-                start = dt[0],
-                end = dt[1]
-            ).fetch()
+        elif data_opt == "monthly": return Monthly(
+            loc = Point(lat, long),
+            start = dt[0],
+            end = dt[1]
+        )
 
-data_json = get_data().to_json(
+data_json = (get_data().fetch()).to_json(
     path_or_buf = None,
     orient = "split",
     date_format = 'iso',
@@ -196,11 +185,14 @@ def ranking(): # Create statistics ranking
     rank[i] = stats(data[i])
 
 # Process data to dataframe and figures:
+list_temp = ["temp", "tavg", "tmin", "tmax", "dwpt"]
+
 df = {}
 df["Time"] = Series(timestamp)
+
 for i in data:
-    if i != "Time": df[dict_abbr[i]] = Series(data[i])
-    if i != "coco" and len(data[i]) != 0: ranking()
+    if i not in ["time"]: df[dict_abbr[i]] = Series(data[i])
+    if i not in ["coco"] and len(data[i]) != 0: ranking()
     elif i == "coco": df["IMG"] = Series(wx_img)
 
     param = go.Scatter(
@@ -212,16 +204,10 @@ for i in data:
 
     if i in list_temp: fig_temp.add_trace(param)
 
-    elif any([
-        i == "prcp",
-        i == "snow"
-    ]): fig_prcp.add_trace(param)
+    elif i in ["prcp", "snow"]: fig_prcp.add_trace(param)
     elif i == "rhum": fig_prcp.add_trace(param, secondary_y = True)
 
-    elif any([
-        i == "wspd",
-        i == "wpgt",
-    ]): fig_wind.add_trace(param)
+    elif i in ["wspd", "wpgt"]: fig_wind.add_trace(param)
     elif i == "wdir": fig_wind.add_trace(param, secondary_y = True)
 
     elif i == "pres": fig_misc.add_trace(param)
@@ -343,7 +329,7 @@ with tab_temp:
 
 with tab_prcp:
     chart(fig_prcp)
-    rank_show(list_prcp)
+    rank_show(["rhum", "prcp", "snow"])
 
 with tab_wind:
     chart(fig_wind)
@@ -376,11 +362,11 @@ with tab_wind:
 
         chart(fig_wdir)
 
-    rank_show(list_wind)
+    rank_show(["wdir", "wspd", "wpgt"])
 
 with tab_misc:
     chart(fig_misc)
-    rank_show(list_misc)
+    rank_show(["pres", "tsun"])
 
 buymeacoffee(
     username = "olamushroom",
@@ -392,6 +378,4 @@ buymeacoffee(
 )
 
 # debug:
-#st.write(st.session_state)
-#st.write(rank)
 #st.write(data)
