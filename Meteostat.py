@@ -1,6 +1,6 @@
 """Meteostat weather data"""
 # Import modules:
-from meteostat import Point, Hourly, Daily, Monthly, units
+from meteostat import Point, Hourly, Daily, Monthly#, units
 from main import get_loc, get_date, stats, chart, geomap
 
 from collections import Counter
@@ -74,10 +74,6 @@ dict_abbr = { # Abbreviations
     "pres" : "Average sea-level air pressure",
     "tsun" : "Sunshine total",
     "coco" : "Weather condition",
-    "mean" : "Mean",
-    "medl" : "Low median",
-    "medh" : "High median",
-    "freq" : "Frequency",
 }
 
 def mtst_date( # Get date
@@ -145,30 +141,80 @@ def get_data(): # Get data
             end = dt[1]
         )
 
-data_json = (get_data().fetch()).to_json(
+mtst_data = get_data().fetch()
+
+data_json = mtst_data.to_json( # Convert Dataframe to JSON object
     path_or_buf = None,
     orient = "split",
     date_format = 'iso',
     date_unit = 's',
     indent = 4
 )
-data_json = loads(data_json)
+
+data_pydict = loads(data_json) # Convert JSON object to Python dictionary
+
+@st.cache_data
+def df_dl(df, frmt: str):
+    if frmt == "csv": return df.to_csv()
+    if frmt == "str": return df.to_string()
+
+with st.sidebar:
+    st.divider()
+    st.subheader("Download data")
+
+    dl_frmt_opt = st.radio(
+        label = "File format",
+        options = ["csv", "txt"],
+        format_func = lambda x: {
+            "csv" : "Comma-separated values (.csv)",
+            #"excel" : "Microsoft Excel spreadsheet (.xlsx)",
+            #"hdf" : "Hierarchical Data Format (.hdf)",
+            #"html" : "HyperText Markup Language (.html)",
+            #"json" : "JavaScript Object Notation (.json)",
+            #"latex" : "LaTeX document (.tex)",
+            #"markdown" : "Markdown",
+            #"sql" : "Structured Query Language (.sql)",
+            #"stata" : "Stata datasets (.dta)",
+            "txt" : "Text document (.txt)",
+        }.get(x)
+    )
+
+    if dl_frmt_opt == "csv":
+        dl_csv = df_dl(mtst_data, "csv")
+
+        st.download_button(
+            label = "Download .csv",
+            data = dl_csv,
+            file_name = "wx_data.csv",
+            mime = "text/csv",
+        )
+
+    if dl_frmt_opt == "txt":
+        dl_txt = df_dl(mtst_data, "str")
+
+        st.download_button(
+            label = "Download .txt",
+            data = dl_txt,
+            file_name = "wx_data.txt",
+        )
 
 # Reorganize data:
 data = {}
 timestamp = []
 wx_img = []
 
-for i in data_json["index"]: timestamp.append(isoparse(i))
+for i in data_pydict["index"]: timestamp.append(isoparse(i))
 
-for i in data_json["columns"]:
+for i in data_pydict["columns"]:
     data[i] = []
-    col = data_json["columns"].index(i)
-    for j in data_json["data"]:
+    col = data_pydict["columns"].index(i)
+
+    for j in data_pydict["data"]:
         if i == "coco" and j[col] != None:
             k = str(int(j[col]))
             j[col] = wx_code[k][0]
             wx_img.append(wx_code[k][1])
+
         data[i].append(j[col])
 
 # Create plotly figures:
@@ -178,22 +224,30 @@ fig_wind = subplot(specs = [[{"secondary_y": True}]])
 fig_misc = subplot(specs = [[{"secondary_y": True}]])
 fig_wxco = go.Figure()
 
-rank = {}
-def ranking(): # Create statistics ranking
-    for n in data[i]:
-        if n == None: return True
-    rank[i] = stats(data[i])
-
-# Process data to dataframe and figures:
 list_temp = ["temp", "tavg", "tmin", "tmax", "dwpt"]
 
+rank = {}
+
+def ranking(i):
+    for n in data[i]:
+        if n == None: return True
+
+# Process data to dataframe and figures:
 df = {}
+
 df["Time"] = Series(timestamp)
 
 for i in data:
-    if i not in ["time"]: df[dict_abbr[i]] = Series(data[i])
-    if i not in ["coco"] and len(data[i]) != 0: ranking()
-    elif i == "coco": df["IMG"] = Series(wx_img)
+    if i not in ["time", "coco"] and len(data[i]) != 0:
+        if ranking(i) != True:
+            rank[i] = stats(data[i])
+            data[i].append(sum(data[i]))
+
+        df[dict_abbr[i]] = Series(data[i])
+
+    elif i == "coco":
+        df["Weather condition"] = Series(data["coco"])
+        df["IMG"] = Series(wx_img)
 
     param = go.Scatter(
         name = dict_abbr[i],
@@ -239,28 +293,36 @@ def rank_show(set): # Display statistics
     for data in rank:
         if data in set:
             st.divider()
+
             st.subheader(dict_abbr[data])
-            for stat in rank[data]:
-                if isinstance(rank[data][stat], (int, float, str)): st.metric(dict_abbr[stat], rank[data][stat]) # Display metrics of statistics
+
+            col_medl, col_medh = st.columns(2)
+
+            # Display metrics of statistics:
+            col_medl.metric(
+                label = "Low median",
+                value = rank[data]["medl"]
+            )
+
+            col_medh.metric(
+                label = "High median",
+                value = rank[data]["medh"]
+            )
 
             with st.expander("Frequency"):
+                st.caption("Value count: " + str(len(rank[data]["freq"])))
+
                 # Display frequency dataframe:
                 st.dataframe(
                     data = rank[data]["freq"],
                     use_container_width = True,
+                    hide_index = False,
                     column_config = {
-                        "_index" : st.column_config.Column(
-                            label = "Value",
-                            help = "",
-                        ),
-
-                        "value" : st.column_config.Column(
-                            label = "Frequency",
-                            help = "",
-                        )
+                        "_index" : st.column_config.Column(label = "Frequency"),
+                        "value" : st.column_config.Column(label = "Value"),
                     }
                 )
-                
+
                 # Create frequency figure:
                 fig_freq = go.Figure(data = [go.Bar(
                     x = list(rank[data]["freq"].keys()),
@@ -378,4 +440,3 @@ buymeacoffee(
 )
 
 # debug:
-#st.write(data)

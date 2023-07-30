@@ -1,7 +1,7 @@
 """Main module"""
 from random import seed, uniform
 from collections import Counter
-from statistics import fmean, median_low, median_high
+from statistics import median_low, median_high
 
 from requests import get
 from geocoder import ip # Module for searching location with IP address
@@ -64,6 +64,8 @@ def find_coord(): # Get coordinates
     ):
         lat = round(uniform(-90, 90), 5)
         long = round(uniform(-180, 180), 5)
+
+        st.toast("Lucky enough yet?", icon = "🎲")
 
     return {
         "lat" : lat,
@@ -164,7 +166,6 @@ def get_date(start, end, min, max, key: str | None = None): # Get a range of dat
 
 def stats(data): # Return statistics
     return {
-        "mean" : round(fmean(data), 10),
         "medl" : round(median_low(data), 10),
         "medh" : round(median_high(data), 10),
         "freq" : Counter(data)
