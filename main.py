@@ -184,14 +184,15 @@ def geomap(lat, long):
         location = [lat, long],
         zoom_start = 10
     )
-    folium.Marker(
-        location = [lat, long],
-        popup = "Selected location"
-    ).add_to(m)
+    
+    fg = folium.FeatureGroup(name = "Markers")
+    #for marker in st.session_state["markers"]: fg.add_child(marker)
 
     return st_folium(
         fig = m,
-        height = 512,
-        width = 1024,
+        height = 342,
+        width = 608,
+        feature_group_to_add = fg,
+        key = "new",
         returned_objects = []
     )

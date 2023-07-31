@@ -10,7 +10,7 @@ from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta
 from dateutil.parser import isoparse
 
-from pandas import Series
+from pandas import DataFrame, Series
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots as subplot
@@ -93,13 +93,18 @@ def mtst_date( # Get date
     }
 
 lat, long = 0, 0
-loc = get_loc()
+
+col_info, col_map = st.columns(2)
+
+with col_info: loc = get_loc()
+
 if loc != None:
     lat = loc["lat"]
     long = loc["long"]
 
-    st.write("Latitude:", lat, "—", "Longitude:", long)
-    geomap(lat, long)
+    with col_info: st.write("Latitude:", lat, "—", "Longitude:", long)
+
+    with col_map: geomap(lat, long)
 
 st.sidebar.divider()
     
@@ -123,27 +128,20 @@ def get_data(): # Get data
     with st.sidebar:
         dt = mtst_date()
 
-        if data_opt == "hourly": return Hourly(
-            loc = Point(lat, long),
-            start = dt[0],
-            end = dt[1]
-        )
+        param = {
+            "loc" : Point(lat, long),
+            "start" : dt[0],
+            "end" : dt[1]
+        }
 
-        elif data_opt == "daily": return Daily(
-            loc = Point(lat, long),
-            start = dt[0],
-            end = dt[1]
-        )
-
-        elif data_opt == "monthly": return Monthly(
-            loc = Point(lat, long),
-            start = dt[0],
-            end = dt[1]
-        )
+        if data_opt == "hourly": return Hourly(**param)
+        elif data_opt == "daily": return Daily(**param)
+        elif data_opt == "monthly": return Monthly(**param)
+        elif data_opt == "normals": pass
 
 mtst_data = get_data().fetch()
 
-data_json = mtst_data.to_json( # Convert Dataframe to JSON object
+data_json = mtst_data.to_json(
     path_or_buf = None,
     orient = "split",
     date_format = 'iso',
@@ -151,52 +149,7 @@ data_json = mtst_data.to_json( # Convert Dataframe to JSON object
     indent = 4
 )
 
-data_pydict = loads(data_json) # Convert JSON object to Python dictionary
-
-@st.cache_data
-def df_dl(df, frmt: str):
-    if frmt == "csv": return df.to_csv()
-    if frmt == "str": return df.to_string()
-
-with st.sidebar:
-    st.divider()
-    st.subheader("Download data")
-
-    dl_frmt_opt = st.radio(
-        label = "File format",
-        options = ["csv", "txt"],
-        format_func = lambda x: {
-            "csv" : "Comma-separated values (.csv)",
-            #"excel" : "Microsoft Excel spreadsheet (.xlsx)",
-            #"hdf" : "Hierarchical Data Format (.hdf)",
-            #"html" : "HyperText Markup Language (.html)",
-            #"json" : "JavaScript Object Notation (.json)",
-            #"latex" : "LaTeX document (.tex)",
-            #"markdown" : "Markdown",
-            #"sql" : "Structured Query Language (.sql)",
-            #"stata" : "Stata datasets (.dta)",
-            "txt" : "Text document (.txt)",
-        }.get(x)
-    )
-
-    if dl_frmt_opt == "csv":
-        dl_csv = df_dl(mtst_data, "csv")
-
-        st.download_button(
-            label = "Download .csv",
-            data = dl_csv,
-            file_name = "wx_data.csv",
-            mime = "text/csv",
-        )
-
-    if dl_frmt_opt == "txt":
-        dl_txt = df_dl(mtst_data, "str")
-
-        st.download_button(
-            label = "Download .txt",
-            data = dl_txt,
-            file_name = "wx_data.txt",
-        )
+data_pydict = loads(data_json)
 
 # Reorganize data:
 data = {}
@@ -269,7 +222,7 @@ for i in data:
 
     elif i == "coco": fig_wxco.add_trace(param)
 
-st.dataframe( # Display dataframe
+st.dataframe(
     data = df,
     use_container_width = True,
     column_config = {
@@ -312,14 +265,13 @@ def rank_show(set): # Display statistics
             with st.expander("Frequency"):
                 st.caption("Value count: " + str(len(rank[data]["freq"])))
 
-                # Display frequency dataframe:
                 st.dataframe(
                     data = rank[data]["freq"],
                     use_container_width = True,
                     hide_index = False,
                     column_config = {
-                        "_index" : st.column_config.Column(label = "Frequency"),
-                        "value" : st.column_config.Column(label = "Value"),
+                        "_index" : st.column_config.Column(label = "Value"),
+                        "value" : st.column_config.Column(label = "Frequency"),
                     }
                 )
 
@@ -336,7 +288,7 @@ def rank_show(set): # Display statistics
                     yaxis_title = "Frequency"
                 )
                 fig_freq.update_xaxes(rangeslider_visible = True)
-                chart(fig_freq) # Display frequency figure
+                chart(fig_freq)
 
 # Update figures:
 fig_update(fig_temp, "°C")
@@ -348,7 +300,7 @@ fig_update(fig_wind, "km/h")
 fig_update(fig_misc, "hPa")
 y2(fig_misc, "minutes")
 
-tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([ # Create tabs to organize & display data
+tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([
     "Temperature",
     "Precipitation",
     "Wind data",
@@ -363,13 +315,15 @@ if data_opt == "hourly": # More updates to figures when current data timescale i
     if isWDIR: y2(fig_wind, "°")
 
     fig_update(fig_wxco, "Conditions")
-    
-    # Create frequency figure for weather conditions:
+
     wxco_freq = Counter(data["coco"])
+
+    # Create frequency figure for weather conditions:
+
     fig_wxco_freq = go.Figure(data = [go.Bar(
-            x = list(wxco_freq.keys()),
-            y = list(wxco_freq.values()),
-            textposition = "auto",
+        x = list(wxco_freq.keys()),
+        y = list(wxco_freq.values()),
+        textposition = "auto",
     )])
 
     fig_wxco_freq.update_layout(
@@ -382,7 +336,21 @@ if data_opt == "hourly": # More updates to figures when current data timescale i
     # Display figures for weather conditions:
     with tab_wxco:
         chart(fig_wxco)
-        chart(fig_wxco_freq)    
+
+        with st.expander("Frequency"):
+            st.caption("Value count: " + str(len(wxco_freq)))
+
+            st.dataframe(
+                data = wxco_freq,
+                use_container_width = True,
+                hide_index = False,
+                column_config = {
+                    "_index" : st.column_config.Column(label = "Value"),
+                    "value" : st.column_config.Column(label = "Frequency"),
+                }
+            )
+
+            chart(fig_wxco_freq)
 
 # Display figures:
 with tab_temp:
@@ -413,7 +381,6 @@ with tab_wind:
             title = "Polar chart for wind direction",
             template = "plotly_dark",
             polar = {
-                #"angularaxis_categoryarray" : ["d", "a", "c", "b"],
                 "angularaxis" : {
                     "tickfont_size" : 15,
                     "rotation" : 90,
@@ -430,7 +397,53 @@ with tab_misc:
     chart(fig_misc)
     rank_show(["pres", "tsun"])
 
-buymeacoffee(
+@st.cache_data
+def df_dl(df, frmt: str):
+    if frmt == "csv": return df.to_csv()
+    if frmt == "html": return df.to_html()
+    if frmt == "txt": return df.to_string()
+
+with st.sidebar:
+    st.divider()
+    st.subheader("Download data")
+
+    if st.checkbox(
+        label = "Use original data",
+        value = True,
+        help = "Use the orginal fetched dataframe instead of the touched up dataframe."
+    ): dl_df = mtst_data
+    else: dl_df = DataFrame.from_dict(df)
+
+    dl_frmt = st.selectbox(
+        label = "File format",
+        options = ["csv", "html", "txt"],
+        format_func = lambda x: {
+            "csv" : "Comma-separated values",
+            #"xlsx" : "Microsoft Excel spreadsheet",
+            #"hdf" : "Hierarchical Data Format",
+            "html" : "HyperText Markup Language",
+            #"json" : "JavaScript Object Notation",
+            #"tex" : "LaTeX document",
+            #"sql" : "Structured Query Language",
+            #"dta" : "Stata datasets",
+            "txt" : "Text document",
+        }.get(x)
+    )
+
+    dl_data = df_dl(dl_df, dl_frmt)
+
+    param = {
+        "label" : "Download ." + dl_frmt,
+        "help" : "Click to download file.",
+        "data" : dl_data,
+        "file_name" : "wx_data." + dl_frmt,
+    }
+
+    if dl_frmt == "csv": st.download_button(**param, mime = "text/csv")
+    elif dl_frmt == "html": st.download_button(**param, mime = "text/html")
+    elif dl_frmt == "txt": st.download_button(**param)
+
+buymeacoffee( # A Buymeacoffee button :)
     username = "olamushroom",
     text = "Coffee, please?",
     emoji = "☕",
