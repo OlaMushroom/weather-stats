@@ -3,6 +3,7 @@
 from meteostat import Point, Hourly, Daily, Monthly#, units
 from main import get_loc, get_date, stats, chart, geomap
 
+from time import perf_counter
 from collections import Counter
 from json import loads
 
@@ -76,6 +77,8 @@ dict_abbr = { # Abbreviations
     "coco" : "Weather condition",
 }
 
+exec_start = perf_counter()
+
 def mtst_date( # Get date
     min: date = date(1973, 1, 1),
     max: date = date.today(),
@@ -98,7 +101,7 @@ col_info, col_map = st.columns(2)
 
 with col_info: loc = get_loc()
 
-if loc != None:
+if loc is not None:
     lat = loc["lat"]
     long = loc["long"]
 
@@ -163,7 +166,7 @@ for i in data_pydict["columns"]:
     col = data_pydict["columns"].index(i)
 
     for j in data_pydict["data"]:
-        if i == "coco" and j[col] != None:
+        if i == "coco" and j[col] is not None:
             k = str(int(j[col]))
             j[col] = wx_code[k][0]
             wx_img.append(wx_code[k][1])
@@ -183,7 +186,7 @@ rank = {}
 
 def ranking(i):
     for n in data[i]:
-        if n == None: return True
+        if n is None: return True
 
 # Process data to dataframe and figures:
 df = {}
@@ -191,7 +194,7 @@ df = {}
 df["Time"] = Series(timestamp)
 
 for i in data:
-    if i not in ["time", "coco"] and len(data[i]) != 0:
+    if i not in ["time", "coco"] and data[i]:
         if ranking(i) != True:
             rank[i] = stats(data[i])
             data[i].append(sum(data[i]))
@@ -234,7 +237,7 @@ st.dataframe(
 def fig_update(fig, y1: str): # Update figure
     fig.update_layout(
         title = "Chart",
-        xaxis_title = "Time",
+        xaxis_title = "🕰️ Time",
         yaxis_title = y1,
         showlegend = True
     )
@@ -301,11 +304,11 @@ fig_update(fig_misc, "hPa")
 y2(fig_misc, "minutes")
 
 tab_temp, tab_prcp, tab_wind, tab_misc, tab_wxco = st.tabs([
-    "Temperature",
-    "Precipitation",
-    "Wind data",
-    "Miscellaneous",
-    "Weather conditions"
+    "🌡️ Temperature",
+    "💧 Precipitation",
+    "💨 Wind data",
+    "☀️ Miscellaneous",
+    "⛅ Weather conditions"
 ])
 
 isWDIR = data_opt == "hourly" or data_opt == "daily"
@@ -410,7 +413,7 @@ with st.sidebar:
     if st.checkbox(
         label = "Use original data",
         value = True,
-        help = "Use the orginal fetched dataframe instead of the touched up dataframe."
+        help = 'Use the orginal fetched dataframe instead of the "touched-up" dataframe.'
     ): dl_df = mtst_data
     else: dl_df = DataFrame.from_dict(df)
 
@@ -433,10 +436,10 @@ with st.sidebar:
     dl_data = df_dl(dl_df, dl_frmt)
 
     param = {
-        "label" : "Download ." + dl_frmt,
+        "label" : f"Download .{dl_frmt}",
         "help" : "Click to download file.",
         "data" : dl_data,
-        "file_name" : "wx_data." + dl_frmt,
+        "file_name" : f"wx_data.{dl_frmt}",
     }
 
     if dl_frmt == "csv": st.download_button(**param, mime = "text/csv")
@@ -451,5 +454,7 @@ buymeacoffee( # A Buymeacoffee button :)
     width = 300,
     floating = True
 )
+
+st.sidebar.info(body = f"Running time: {round(perf_counter() - exec_start, 10)}s", icon = "⏲️")
 
 # debug:

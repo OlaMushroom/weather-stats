@@ -48,7 +48,6 @@ def find_coord(): # Get coordinates
     )
     long = round(long, 3)
 
-    st.sidebar.divider()
     st.sidebar.subheader("RNG")
 
     if st.sidebar.checkbox(label = "Enable seed"):
@@ -80,9 +79,9 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
     )
 
     if input != None and input != "":
-        loc = get("http://geocoding-api.open-meteo.com/v1/search?name=" + input + "&count=1&language=en&format=json").json()["results"][0]
+        loc = get(f"http://geocoding-api.open-meteo.com/v1/search?name={input}&count=1&language=en&format=json").json()["results"][0]
 
-        st.subheader(loc["name"] + ", " + loc["admin1"] + ", " + loc["country"])
+        st.subheader(f'{loc["name"]}, {loc["admin1"]}, {loc["country"]}')
 
         return {
             "lat" : loc["latitude"],

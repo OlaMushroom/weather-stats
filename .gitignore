@@ -2,3 +2,4 @@ __pycache__/
 OpenMeteo.py
 modules/openmeteo_module.py
 test.py
+.vscode/launch.json
