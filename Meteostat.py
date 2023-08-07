@@ -105,7 +105,9 @@ if loc is not None:
     lat = loc["lat"]
     long = loc["long"]
 
-    with col_info: st.write("Latitude:", lat, "—", "Longitude:", long)
+    with col_info:
+        st.write("Latitude:", lat)
+        st.write("Longitude:", long)
 
     with col_map: geomap(lat, long)
 

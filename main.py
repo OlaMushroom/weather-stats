@@ -78,15 +78,18 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
         help = "Only 1 character will return empty result, 2 characters will only match exact matching locations, 3 and more characters will perform fuzzy matching."
     )
 
-    if input != None and input != "":
-        loc = get(f"http://geocoding-api.open-meteo.com/v1/search?name={input}&count=1&language=en&format=json").json()["results"][0]
+    if input is not None and input != "":
+        try:
+            loc = get(f"http://geocoding-api.open-meteo.com/v1/search?name={input}&count=1&language=en&format=json").json()["results"][0]
 
-        st.subheader(f'{loc["name"]}, {loc["admin1"]}, {loc["country"]}')
+            st.subheader(f'{loc["name"]}, {loc["admin1"]}, {loc["country"]}')
 
-        return {
-            "lat" : loc["latitude"],
-            "long" : loc["longitude"]
-        }
+            return {
+                "lat" : loc["latitude"],
+                "long" : loc["longitude"]
+            }
+    
+        except KeyError: st.sidebar.error(body = "Location not found.", icon = "📍")
 
 def find_ip(): # IP-based location search using Geocoder
     input = st.sidebar.text_input(
@@ -95,10 +98,10 @@ def find_ip(): # IP-based location search using Geocoder
         help = ""
     )
             
-    if input != None and input != "":
+    if input is not None and input != "":
         g = ip(input)
 
-        st.subheader(g.city + ", " + g.state + ", " + g.country)
+        st.subheader(f"{g.city}, {g.state}, {g.country}")
 
         return {
             "lat" : g.latlng[0],
@@ -119,7 +122,7 @@ def find_map():
             width = 512
         )
 
-    if st_data["last_clicked"] != None:
+    if st_data["last_clicked"] is not None:
         return {
             "lat" : st_data["last_clicked"]["lat"],
             "long" : st_data["last_clicked"]["lng"]
