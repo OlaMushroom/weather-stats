@@ -1,14 +1,11 @@
 """Main module"""
-from random import seed, uniform
 from collections import Counter
 from statistics import median_low, median_high
-
+from random import seed, uniform
 from requests import get
 from geocoder import ip # Module for searching location with IP address
-
 import streamlit as st
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
-
 import folium
 from streamlit_folium import st_folium
 
@@ -50,7 +47,7 @@ def find_coord(): # Get coordinates
 
     st.sidebar.subheader("RNG")
 
-    if st.sidebar.checkbox(label = "Enable seed"):
+    if st.sidebar.toggle(label = "Enable seed"):
         seed(st.sidebar.number_input(
             label = "Seed",
             value = 0,
@@ -82,7 +79,7 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
         try:
             loc = get(f"http://geocoding-api.open-meteo.com/v1/search?name={input}&count=1&language=en&format=json").json()["results"][0]
 
-            st.subheader(f'{loc["name"]}, {loc["admin1"]}, {loc["country"]}')
+            st.subheader(f'{loc["name"]}, {loc["admin1"]}, {loc["country"]}', divider = "gray")
 
             return {
                 "lat" : loc["latitude"],
@@ -101,7 +98,7 @@ def find_ip(): # IP-based location search using Geocoder
     if input is not None and input != "":
         g = ip(input)
 
-        st.subheader(f"{g.city}, {g.state}, {g.country}")
+        st.subheader(f"{g.city}, {g.state}, {g.country}", divider = "gray")
 
         return {
             "lat" : g.latlng[0],
@@ -177,8 +174,8 @@ def chart(fig): # Display plotly chart
     return st.plotly_chart(
         figure_or_data = fig,
         use_container_width = True,
-        sharing = 'streamlit',
-        theme = 'streamlit'
+        sharing = "streamlit",
+        theme = "streamlit"
     )
 
 def geomap(lat, long):

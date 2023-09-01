@@ -2,22 +2,21 @@
 # Import modules:
 from meteostat import Point, Hourly, Daily, Monthly#, units
 from main import get_loc, get_date, stats, chart, geomap
-
-from time import perf_counter
+#from dataclasses import dataclass
 from collections import Counter
+from pathlib import Path
 from json import loads
-
+from time import perf_counter
 from datetime import date, datetime
 #from dateutil.relativedelta import relativedelta
 from dateutil.parser import isoparse
-
 from pandas import DataFrame, Series
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots as subplot
-
 import streamlit as st
 from streamlit_extras.buy_me_a_coffee import button as buymeacoffee
+
+exec_start = perf_counter()
 
 st.set_page_config( # Page configuration
     page_title = "Meteostat",
@@ -30,23 +29,34 @@ st.set_page_config( # Page configuration
     }
 )
 
+buymeacoffee( # A Buymeacoffee button :)
+    username = "olamushroom",
+    text = "Coffee, please?",
+    emoji = "☕",
+    font = "Poppins",
+    width = 300,
+    floating = True
+)
+
+path = Path("app/static")
+
 wx_code = { # Weather condition codes
     "1" : ["Clear", ""],
     "2" : ["Fair", ""],
     "3" : ["Cloudy", ""],
-    "4" : ["Overcast", "app/static/overcast.png"],
-    "5" : ["Fog", "app/static/fog.png"],
-    "6" : ["Freezing Fog", "app/static/freezing_fog.png"],
-    "7" : ["Light Rain", "app/static/rain.png"],
-    "8" : ["Rain", "app/static/rain.png"],
-    "9" : ["Heavy Rain", "app/static/heavy_rain.png"],
-    "10" : ["Freezing Rain", "app/static/freezing_rain.png"],
-    "11" : ["Heavy Freezing Rain", "app/static/freezing_rain.png"],
-    "12" : ["Sleet", "app/static/sleet.png"],
-    "13" : ["Heavy Sleet", "app/static/sleet.png"],
-    "14" : ["Light Snowfall", "app/static/snowfall.png"],
-    "15" : ["Snowfall", "app/static/snowfall.png"],
-    "16" : ["Heavy Snowfall", "app/static/heavy_snowfall.png"],
+    "4" : ["Overcast", path/"overcast.png"],
+    "5" : ["Fog", path/"fog.png"],
+    "6" : ["Freezing Fog", path/"freezing_fog.png"],
+    "7" : ["Light Rain", path/"rain.png"],
+    "8" : ["Rain", path/"rain.png"],
+    "9" : ["Heavy Rain", path/"heavy_rain.png"],
+    "10" : ["Freezing Rain", path/"freezing_rain.png"],
+    "11" : ["Heavy Freezing Rain", path/"freezing_rain.png"],
+    "12" : ["Sleet", path/"sleet.png"],
+    "13" : ["Heavy Sleet", path/"sleet.png"],
+    "14" : ["Light Snowfall", path/"snowfall.png"],
+    "15" : ["Snowfall", path/"snowfall.png"],
+    "16" : ["Heavy Snowfall", path/"heavy_snowfall.png"],
     "17" : ["Rain Shower", ""],
     "18" : ["Heavy Rain Shower", ""],
     "19" : ["Sleet Shower", ""],
@@ -77,23 +87,7 @@ dict_abbr = { # Abbreviations
     "coco" : "Weather condition",
 }
 
-exec_start = perf_counter()
-
-def mtst_date( # Get date
-    min: date = date(1973, 1, 1),
-    max: date = date.today(),
-):
-    with st.sidebar: dt = get_date(
-        start = max,
-        end = max,
-        min = min,
-        max = max
-    )
-
-    return {
-        0 : datetime.combine(dt["start_date"], datetime.min.time()),
-        1 : datetime.combine(dt["end_date"], datetime.max.time())
-    }
+#status = st.sidebar.status("EXPERIMENTAL")
 
 lat, long = 0, 0
 
@@ -129,6 +123,22 @@ data_opt = st.sidebar.radio(
     help = ""
 )
 
+def mtst_date( # Get date
+    min: date = date(1973, 1, 1),
+    max: date = date.today(),
+):
+    with st.sidebar: dt = get_date(
+        start = max,
+        end = max,
+        min = min,
+        max = max
+    )
+
+    return {
+        0 : datetime.combine(dt["start_date"], datetime.min.time()),
+        1 : datetime.combine(dt["end_date"], datetime.max.time())
+    }
+
 def get_data(): # Get data
     with st.sidebar:
         dt = mtst_date()
@@ -149,8 +159,8 @@ mtst_data = get_data().fetch()
 data_json = mtst_data.to_json(
     path_or_buf = None,
     orient = "split",
-    date_format = 'iso',
-    date_unit = 's',
+    date_format = "iso",
+    date_unit = "s",
     indent = 4
 )
 
@@ -161,19 +171,19 @@ data = {}
 timestamp = []
 wx_img = []
 
+columns = data_pydict["columns"]
 for i in data_pydict["index"]: timestamp.append(isoparse(i))
-
-for i in data_pydict["columns"]:
-    data[i] = []
-    col = data_pydict["columns"].index(i)
+for i, v in enumerate(columns):
+    data[v] = []
+    col = i
 
     for j in data_pydict["data"]:
-        if i == "coco" and j[col] is not None:
+        if v == "coco" and j[col] is not None:
             k = str(int(j[col]))
             j[col] = wx_code[k][0]
             wx_img.append(wx_code[k][1])
 
-        data[i].append(j[col])
+        data[v].append(j[col])
 
 # Create plotly figures:
 fig_temp = go.Figure()
@@ -402,22 +412,16 @@ with tab_misc:
     chart(fig_misc)
     rank_show(["pres", "tsun"])
 
-@st.cache_data
-def df_dl(df, frmt: str):
-    if frmt == "csv": return df.to_csv()
-    if frmt == "html": return df.to_html()
-    if frmt == "txt": return df.to_string()
-
+# Generate download data:
 with st.sidebar:
     st.divider()
     st.subheader("Download data")
 
-    if st.checkbox(
+    orig_data = st.toggle(
         label = "Use original data",
         value = True,
         help = 'Use the orginal fetched dataframe instead of the "touched-up" dataframe.'
-    ): dl_df = mtst_data
-    else: dl_df = DataFrame.from_dict(df)
+    )
 
     dl_frmt = st.selectbox(
         label = "File format",
@@ -435,28 +439,29 @@ with st.sidebar:
         }.get(x)
     )
 
-    dl_data = df_dl(dl_df, dl_frmt)
+@st.cache_data
+def download(frmt: str):
+    if orig_data: df = mtst_data
+    else: df = DataFrame.from_dict(df)
 
-    param = {
-        "label" : f"Download .{dl_frmt}",
-        "help" : "Click to download file.",
-        "data" : dl_data,
-        "file_name" : f"wx_data.{dl_frmt}",
-    }
+    if frmt == "csv": return df.to_csv()
+    elif frmt == "html": return df.to_html()
+    elif frmt == "txt": return df.to_string()
 
+dl_data = download(dl_frmt)
+
+param = {
+    "label" : f"Download .{dl_frmt}",
+    "help" : "Click to download file.",
+    "data" : dl_data,
+    "file_name" : f"wx_data.{dl_frmt}",
+}
+
+with st.sidebar:
     if dl_frmt == "csv": st.download_button(**param, mime = "text/csv")
     elif dl_frmt == "html": st.download_button(**param, mime = "text/html")
     elif dl_frmt == "txt": st.download_button(**param)
 
-buymeacoffee( # A Buymeacoffee button :)
-    username = "olamushroom",
-    text = "Coffee, please?",
-    emoji = "☕",
-    font = "Poppins",
-    width = 300,
-    floating = True
-)
-
-st.sidebar.info(body = f"Running time: {round(perf_counter() - exec_start, 10)}s", icon = "⏲️")
+st.sidebar.info(body = f"Running time: {(perf_counter() - exec_start):.2f}s", icon = "⏲️")
 
 # debug:

@@ -1,5 +1,6 @@
-__pycache__/
+.vscode
+weather-stats.code-workspace
+__pycache__
 OpenMeteo.py
-modules/openmeteo_module.py
+modules
 test.py
-.vscode/launch.json
