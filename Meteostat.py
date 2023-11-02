@@ -415,8 +415,6 @@ with tab_misc:
 # Generate download data:
 with st.sidebar:
     st.divider()
-    st.subheader("Download data")
-    
     @st.cache_data
     def convert_df(df): return df.to_csv()
 
