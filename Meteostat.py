@@ -416,52 +416,18 @@ with tab_misc:
 with st.sidebar:
     st.divider()
     st.subheader("Download data")
+    
+    @st.cache_data
+    def convert_df(df): return df.to_csv()
 
-    orig_data = st.toggle(
-        label = "Use original data",
-        value = True,
-        help = 'Use the orginal fetched dataframe instead of the "touched-up" dataframe.'
+    st.download_button(
+        label = "Download original data",
+        help = "Click to download file.",
+        data = convert_df(mtst_data),
+        file_name = "wx_original_data.csv",
+        mime = "text/csv"
     )
 
-    dl_frmt = st.selectbox(
-        label = "File format",
-        options = ["csv", "html", "txt"],
-        format_func = lambda x: {
-            "csv" : "Comma-separated values",
-            #"xlsx" : "Microsoft Excel spreadsheet",
-            #"hdf" : "Hierarchical Data Format",
-            "html" : "HyperText Markup Language",
-            #"json" : "JavaScript Object Notation",
-            #"tex" : "LaTeX document",
-            #"sql" : "Structured Query Language",
-            #"dta" : "Stata datasets",
-            "txt" : "Text document",
-        }.get(x)
-    )
-
-@st.cache_data
-def download(frmt: str):
-    if orig_data: df = mtst_data
-    else: df = DataFrame.from_dict(df)
-
-    if frmt == "csv": return df.to_csv()
-    elif frmt == "html": return df.to_html()
-    elif frmt == "txt": return df.to_string()
-
-dl_data = download(dl_frmt)
-
-param = {
-    "label" : f"Download .{dl_frmt}",
-    "help" : "Click to download file.",
-    "data" : dl_data,
-    "file_name" : f"wx_data.{dl_frmt}",
-}
-
-with st.sidebar:
-    if dl_frmt == "csv": st.download_button(**param, mime = "text/csv")
-    elif dl_frmt == "html": st.download_button(**param, mime = "text/html")
-    elif dl_frmt == "txt": st.download_button(**param)
-
-st.sidebar.info(body = f"Running time: {(perf_counter() - exec_start):.2f}s", icon = "⏲️")
+st.sidebar.info(body = f"Running time: {(perf_counter() - exec_start):.3f}s", icon = "⏲️")
 
 # debug:
