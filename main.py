@@ -3,7 +3,7 @@ from collections import Counter
 from statistics import median_low, median_high
 from random import seed, uniform
 from requests import get
-from geocoder import ip # Module for searching location with IP address
+#from geocoder import ip # Module for searching location with IP address
 import streamlit as st
 from streamlit_extras.mandatory_date_range import date_range_picker as date_range # Date picker but with range selection
 import folium
@@ -88,6 +88,7 @@ def find_name(): # Location search based on Name/Postal Code using Open-Meteo Ge
     
         except KeyError: st.sidebar.error(body = "Location not found.", icon = "📍")
 
+'''
 def find_ip(): # IP-based location search using Geocoder
     input = st.sidebar.text_input(
         label = "IP address",
@@ -104,6 +105,7 @@ def find_ip(): # IP-based location search using Geocoder
             "lat" : g.latlng[0],
             "long" : g.latlng[1]
         }
+'''
     
 def find_map():
     m = folium.Map(
