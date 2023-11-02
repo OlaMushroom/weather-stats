@@ -4,4 +4,4 @@ plotly == 5.15.0
 folium == 0.14.0
 streamlit-folium == 0.11.1
 streamlit-extras == 0.2.7
-streamlit == 1.26.0
+streamlit == 1.28.0
