@@ -147,7 +147,7 @@ def get_loc(): # Get location-search type
     
     if in_opt == "coord": return find_coord()
     elif in_opt == "name": return find_name()
-    elif in_opt == "ip": return find_ip()
+    #elif in_opt == "ip": return find_ip()
     elif in_opt == "map": return find_map()
 
 def get_date(start, end, min, max, key: str | None = None): # Get a range of date
