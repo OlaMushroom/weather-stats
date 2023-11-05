@@ -25,17 +25,8 @@ st.set_page_config( # Page configuration
     menu_items = {
         "Get Help" : "https://github.com/OlaMushroom/weather-stats/wiki",
         "Report a bug" : "https://github.com/OlaMushroom/weather-stats/issues",
-        "About" : "Data provider: [Meteostat](https://meteostat.net) — Map library: [Folium](https://python-visualization.github.io/folium)"
+        "About" : f"Data provider: [Meteostat](https://meteostat.net)\nMap library: [Folium](https://python-visualization.github.io/folium)"
     }
-)
-
-buymeacoffee( # A Buymeacoffee button :)
-    username = "olamushroom",
-    text = "Coffee, please?",
-    emoji = "☕",
-    font = "Poppins",
-    width = 300,
-    floating = True
 )
 
 path = Path("app/static")
@@ -413,10 +404,11 @@ with tab_misc:
     rank_show(["pres", "tsun"])
 
 # Generate download data:
+@st.cache_data(show_spinner = True)
+def convert_df(df): return df.to_csv()
+
 with st.sidebar:
     st.divider()
-    @st.cache_data
-    def convert_df(df): return df.to_csv()
 
     st.download_button(
         label = "Download original data",
@@ -426,6 +418,15 @@ with st.sidebar:
         mime = "text/csv"
     )
 
-st.sidebar.info(body = f"Running time: {(perf_counter() - exec_start):.3f}s", icon = "⏲️")
+    st.info(body = f"Running time: {(perf_counter() - exec_start):.3f}s", icon = "⏲️")
+
+buymeacoffee( # A Buymeacoffee button :)
+    username = "olamushroom",
+    text = "Coffee, please?",
+    emoji = "☕",
+    font = "Poppins",
+    width = 300,
+    floating = True
+)
 
 # debug:
